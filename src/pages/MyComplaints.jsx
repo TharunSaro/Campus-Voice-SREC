@@ -1,7 +1,11 @@
 import React from 'react';
-import { TopNav, BottomNav } from '../components/Navbars';
+import { TopNav } from '../components/Navbars';
+import BottomNav from '../components/BottomNav';
+import { useAuth } from '../context/AuthContext';
 
 export default function MyComplaints() {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen">
       <TopNav />
@@ -11,7 +15,7 @@ export default function MyComplaints() {
           <p className="text-gray-600">You haven't submitted any complaints yet.</p>
         </div>
       </div>
-      <BottomNav />
+      {user?.role === 'student' && <BottomNav />}
     </div>
   );
 }

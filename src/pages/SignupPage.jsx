@@ -50,21 +50,15 @@ export default function SignupPage() {
       setErrors({ email: result.message });
       return;
     }
-    // After successful signup, show onboarding if not seen
-    const hasOnboarded = localStorage.getItem('onboarded') === 'true';
-    if (!hasOnboarded) {
-      navigate('/onboarding');
-    } else {
-      alert('Account created successfully. Please sign in.');
-      navigate('/login');
-    }
+    // After successful signup, always navigate to onboarding
+    navigate('/onboarding');
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md hover:shadow-lg transition p-6 sm:p-8">
-          <h1 className="text-2xl font-semibold text-center text-gray-900 dark:text-gray-100">Create account</h1>
+        <div className="bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-lg transition p-6 sm:p-8">
+          <h1 className="text-2xl font-semibold text-center text-gray-900">Create account</h1>
           <form onSubmit={onSubmit} aria-label="Signup form" className="mt-6 grid grid-cols-1 gap-3">
             <div>
               <input
@@ -72,7 +66,7 @@ export default function SignupPage() {
                 value={form.fullName}
                 onChange={update('fullName')}
                 aria-label="Full name"
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 placeholder="Full Name"
               />
               {errors.fullName && <p className="text-xs text-red-600 mt-1">{errors.fullName}</p>}
@@ -83,7 +77,7 @@ export default function SignupPage() {
                 value={form.registerNumber}
                 onChange={update('registerNumber')}
                 aria-label="College register number"
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 placeholder="College Register Number"
               />
               {errors.registerNumber && <p className="text-xs text-red-600 mt-1">{errors.registerNumber}</p>}
@@ -93,7 +87,7 @@ export default function SignupPage() {
                 value={form.department}
                 onChange={update('department')}
                 aria-label="Department"
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-3 text-sm text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               >
                 <option value="">Select Department</option>
                 {departments.map((d) => (
@@ -115,7 +109,7 @@ export default function SignupPage() {
                       aria-label={`Gender ${g}`}
                       className="text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-gray-700 dark:text-gray-300">{g}</span>
+                    <span className="text-gray-700">{g}</span>
                   </label>
                 ))}
               </div>
@@ -127,7 +121,7 @@ export default function SignupPage() {
                 value={form.phone}
                 onChange={update('phone')}
                 aria-label="Phone number"
-                className={`w-full rounded-md border ${phoneOk || !form.phone ? 'border-gray-300 dark:border-gray-600' : 'border-red-300'} bg-gray-50 dark:bg-gray-700 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+                className={`w-full rounded-md border ${phoneOk || !form.phone ? 'border-gray-300' : 'border-red-300'} bg-gray-50 px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
                 placeholder="Phone Number"
               />
               {errors.phone && <p className="text-xs text-red-600 mt-1">{errors.phone}</p>}
@@ -138,7 +132,7 @@ export default function SignupPage() {
                 value={form.email}
                 onChange={update('email')}
                 aria-label="Email address"
-                className={`w-full rounded-md border ${emailOk || !form.email ? 'border-gray-300 dark:border-gray-600' : 'border-red-300'} bg-gray-50 dark:bg-gray-700 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+                className={`w-full rounded-md border ${emailOk || !form.email ? 'border-gray-300' : 'border-red-300'} bg-gray-50 px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
                 placeholder="Email (must end with @srec.ac.in)"
               />
               {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
@@ -150,7 +144,7 @@ export default function SignupPage() {
                   value={form.password}
                   onChange={update('password')}
                   aria-label="Password"
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                  className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                   placeholder="Password"
                 />
                 {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
@@ -161,7 +155,7 @@ export default function SignupPage() {
                   value={form.confirmPassword}
                   onChange={update('confirmPassword')}
                   aria-label="Confirm password"
-                  className={`w-full rounded-md border ${passwordsMatch || !form.confirmPassword ? 'border-gray-300 dark:border-gray-600' : 'border-red-300'} bg-gray-50 dark:bg-gray-700 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
+                  className={`w-full rounded-md border ${passwordsMatch || !form.confirmPassword ? 'border-gray-300' : 'border-red-300'} bg-gray-50 px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
                   placeholder="Confirm Password"
                 />
                 {errors.confirmPassword && <p className="text-xs text-red-600 mt-1">{errors.confirmPassword}</p>}
@@ -173,9 +167,9 @@ export default function SignupPage() {
             </button>
           </form>
         </div>
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md p-4 mt-3 text-center text-sm">
-          <span className="text-gray-700 dark:text-gray-300">Already have an account? </span>
-          <Link to="/login" className="text-blue-600 dark:text-blue-400 font-medium">Sign in</Link>
+        <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mt-3 text-center text-sm">
+          <span className="text-gray-700">Already have an account? </span>
+          <Link to="/login" className="text-blue-600 font-medium">Sign in</Link>
         </div>
       </div>
     </div>

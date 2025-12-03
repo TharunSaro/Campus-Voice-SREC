@@ -7,7 +7,6 @@ import AdminDashboard from './pages/AdminDashboard';
 import InstallPrompt from './components/InstallPrompt';
 import SignupPage from './pages/SignupPage';
 import Onboarding from './pages/Onboarding';
-import ThemeToggle from './components/ThemeToggle';
 import MyComplaints from './pages/MyComplaints';
 import SubmitComplaint from './pages/SubmitComplaint';
 import Profile from './pages/Profile';
@@ -35,7 +34,6 @@ function DashboardRedirect() {
 export default function App() {
   return (
     <AuthProvider>
-      <ThemeToggle />
       <InstallPrompt />
       <Routes>
         <Route path="/login" element={<LoginPage />} />

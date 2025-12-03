@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { TopNav, BottomNav } from '../components/Navbars';
+import { TopNav } from '../components/Navbars';
+import BottomNav from '../components/BottomNav';
 import { Card } from '../components/UI';
+import { useAuth } from '../context/AuthContext';
 
 export default function Posts() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('create');
   const [formData, setFormData] = useState({
     title: '',
@@ -186,7 +189,7 @@ export default function Posts() {
         )}
       </div>
 
-      <BottomNav />
+      {user?.role === 'student' && <BottomNav />}
     </div>
   );
 }

@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { TopNav, BottomNav } from '../components/Navbars';
+import { TopNav } from '../components/Navbars';
+import BottomNav from '../components/BottomNav';
 import { Card } from '../components/UI';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = ['Hostel', 'Mess', 'Academics', 'Infrastructure', 'Transport', 'Other'];
 
 export default function SubmitComplaint() {
+  const { user } = useAuth();
   const [form, setForm] = useState({ title: '', category: '', description: '' });
   const [submitted, setSubmitted] = useState(false);
 
@@ -84,7 +87,7 @@ export default function SubmitComplaint() {
           </Card>
         )}
       </div>
-      <BottomNav />
+      {user?.role === 'student' && <BottomNav />}
     </div>
   );
 }
