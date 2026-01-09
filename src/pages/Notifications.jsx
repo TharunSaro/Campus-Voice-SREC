@@ -1,12 +1,8 @@
 import React from 'react';
-import { TopNav } from '../components/Navbars';
-import BottomNav from '../components/BottomNav';
+import { TopNav, BottomNav } from '../components/Navbars';
 import { Card } from '../components/UI';
-import { useAuth } from '../context/AuthContext';
 
 export default function Notifications() {
-  const { user } = useAuth();
-
   return (
     <div className="min-h-screen">
       <TopNav />
@@ -16,7 +12,7 @@ export default function Notifications() {
           <p className="text-gray-600">You're all caught up. (Placeholder)</p>
         </Card>
       </div>
-      {user?.role === 'student' && <BottomNav />}
+      <BottomNav />
     </div>
   );
 }

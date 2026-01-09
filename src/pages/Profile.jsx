@@ -1,6 +1,5 @@
 import React from 'react';
-import { TopNav } from '../components/Navbars';
-import BottomNav from '../components/BottomNav';
+import { TopNav, BottomNav } from '../components/Navbars';
 import { useAuth } from '../context/AuthContext';
 
 export default function Profile() {
@@ -48,7 +47,7 @@ export default function Profile() {
           </div>
         </div>
       </div>
-      {user?.role === 'student' && <BottomNav />}
+      <BottomNav />
     </div>
   );
 }
