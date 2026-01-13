@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
     if (!email || !password) {
@@ -22,13 +23,14 @@ export default function LoginPage() {
       setError('Please use your @srec.ac.in email.');
       return;
     }
-    // Mock wrong credentials check (for demo): require a simple password
-    if (password !== 'password') {
-      alert('Wrong email or password.');
-      return;
+
+    try {
+      const response = await login(email, password);
+      console.log('Login successful:', response);
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setError(err.message || 'Login failed');
     }
-    const result = login(email, password);
-    if (!result.ok) setError(result.message || 'Login failed');
   };
 
   return (

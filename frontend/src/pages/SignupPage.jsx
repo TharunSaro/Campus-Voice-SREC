@@ -42,21 +42,33 @@ export default function SignupPage() {
     return Object.keys(next).length === 0;
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    const result = signup(form.email);
-    if (!result.ok) {
-      setErrors({ email: result.message });
-      return;
-    }
-    // After successful signup, show onboarding if not seen
-    const hasOnboarded = localStorage.getItem('onboarded') === 'true';
-    if (!hasOnboarded) {
-      navigate('/onboarding');
-    } else {
-      alert('Account created successfully. Please sign in.');
-      navigate('/login');
+
+    // Map form data to backend expected format
+    const userData = {
+      reg_no: form.registerNumber,
+      name: form.fullName,
+      department: form.department,
+      gender: form.gender,
+      phone: form.phone,
+      email: form.email,
+      password: form.password
+    };
+
+    try {
+      const result = await signup(userData);
+      // After successful signup, show onboarding if not seen
+      const hasOnboarded = localStorage.getItem('onboarded') === 'true';
+      if (!hasOnboarded) {
+        navigate('/onboarding');
+      } else {
+        alert('Account created successfully. Please sign in.');
+        navigate('/login');
+      }
+    } catch (err) {
+      setErrors({ email: err.message });
     }
   };
 

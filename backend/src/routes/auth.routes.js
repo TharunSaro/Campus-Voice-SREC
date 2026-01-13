@@ -12,8 +12,8 @@ router.post('/signup', async (req, res) => {
 
     // Validate required fields
     if (!reg_no || !name || !department || !gender || !phone || !email || !password) {
-      return res.status(400).json({ 
-        error: 'All fields are required' 
+      return res.status(400).json({
+        error: 'All fields are required'
       });
     }
 
@@ -23,17 +23,19 @@ router.post('/signup', async (req, res) => {
       FROM users 
       WHERE email = $1 OR reg_no = $2
     `;
-    const existingUser = await pool.query(checkUserQuery, [email, reg_no]);
+    // Normalize email to lowercase
+    const normalizedEmail = email.toLowerCase();
+    const existingUser = await pool.query(checkUserQuery, [normalizedEmail, reg_no]);
 
     if (existingUser.rows.length > 0) {
-      if (existingUser.rows[0].email === email) {
-        return res.status(400).json({ 
-          error: 'Email already registered' 
+      if (existingUser.rows[0].email === normalizedEmail) {
+        return res.status(400).json({
+          error: 'Email already registered'
         });
       }
       if (existingUser.rows[0].reg_no === reg_no) {
-        return res.status(400).json({ 
-          error: 'Registration number already exists' 
+        return res.status(400).json({
+          error: 'Registration number already exists'
         });
       }
     }
@@ -48,14 +50,14 @@ router.post('/signup', async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id, reg_no, name, department, gender, phone, email, created_at
     `;
-    
+
     const result = await pool.query(insertUserQuery, [
       reg_no,
       name,
       department,
       gender,
       phone,
-      email,
+      normalizedEmail,
       hashedPassword
     ]);
 
@@ -78,8 +80,8 @@ router.post('/signup', async (req, res) => {
 
   } catch (error) {
     console.error('Signup error:', error);
-    res.status(500).json({ 
-      error: 'Internal server error during registration' 
+    res.status(500).json({
+      error: 'Internal server error during registration'
     });
   }
 });
@@ -91,8 +93,8 @@ router.post('/login', async (req, res) => {
 
     // Validate required fields
     if (!email || !password) {
-      return res.status(400).json({ 
-        error: 'Email and password are required' 
+      return res.status(400).json({
+        error: 'Email and password are required'
       });
     }
 
@@ -102,11 +104,11 @@ router.post('/login', async (req, res) => {
       FROM users 
       WHERE email = $1
     `;
-    const result = await pool.query(getUserQuery, [email]);
+    const result = await pool.query(getUserQuery, [email.toLowerCase()]);
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ 
-        error: 'Invalid email or password' 
+      return res.status(401).json({
+        error: 'Invalid email or password'
       });
     }
 
@@ -116,15 +118,15 @@ router.post('/login', async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ 
-        error: 'Invalid email or password' 
+      return res.status(401).json({
+        error: 'Invalid email or password'
       });
     }
 
     // Generate JWT token (1 day expiry)
     const token = jwt.sign(
-      { 
-        id: user.id, 
+      {
+        id: user.id,
         email: user.email,
         reg_no: user.reg_no
       },
@@ -150,8 +152,8 @@ router.post('/login', async (req, res) => {
 
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ 
-      error: 'Internal server error during login' 
+    res.status(500).json({
+      error: 'Internal server error during login'
     });
   }
 });

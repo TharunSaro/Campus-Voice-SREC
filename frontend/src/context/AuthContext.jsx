@@ -1,54 +1,50 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import authService from '../services/auth.service';
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null); // { email, role: 'student'|'admin' }
+export const AuthProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = (email, password) => {
-    const isSrecEmail = /@srec\.ac\.in$/i.test(email);
-    if (!isSrecEmail) {
-      return { ok: false, message: 'Please use your @srec.ac.in email.' };
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
     }
-    // Mock auth: password not validated; derive role from email prefix 'admin'
-    const role = email.toLowerCase().startsWith('admin') ? 'admin' : 'student';
-    const authUser = { email, role };
-    setUser(authUser);
-    if (role === 'admin') {
-      navigate('/admin');
-    } else {
-      // Clear last tab to ensure fresh login goes to home
-      localStorage.removeItem('cv_last_tab');
-      navigate('/home');
-    }
-    return { ok: true };
+    setLoading(false);
+  }, []);
+
+  const login = async (email, password) => {
+    const data = await authService.login(email, password);
+    setCurrentUser(data.user);
+    return data;
   };
 
-  // Mock signup: set user so onboarding can run without redirecting yet
-  const signup = (email) => {
-    const isSrecEmail = /@srec\.ac\.in$/i.test(email);
-    if (!isSrecEmail) {
-      return { ok: false, message: 'Please use your @srec.ac.in email.' };
-    }
-    const role = email.toLowerCase().startsWith('admin') ? 'admin' : 'student';
-    setUser({ email, role });
-    return { ok: true };
+  const signup = async (userData) => {
+    return await authService.signup(userData);
   };
 
   const logout = () => {
-    setUser(null);
-    navigate('/login');
+    authService.logout();
+    setCurrentUser(null);
   };
 
-  const value = useMemo(() => ({ user, login, logout, signup }), [user]);
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+  const value = {
+    user: currentUser,
+    login,
+    signup,
+    logout,
+    loading
+  };
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
-}
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
+};
 
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
