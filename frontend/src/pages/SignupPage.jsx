@@ -11,7 +11,9 @@ export default function SignupPage() {
     fullName: '',
     registerNumber: '',
     department: '',
+    department: '',
     gender: '',
+    stay_type: '',
     phone: '',
     email: '',
     password: '',
@@ -30,7 +32,9 @@ export default function SignupPage() {
     if (!form.fullName) next.fullName = 'Full name is required';
     if (!form.registerNumber) next.registerNumber = 'Register number is required';
     if (!form.department) next.department = 'Select a department';
+    if (!form.department) next.department = 'Select a department';
     if (!form.gender) next.gender = 'Select gender';
+    if (!form.stay_type) next.stay_type = 'Select stay type';
     if (!form.phone) next.phone = 'Phone is required';
     else if (!phoneOk) next.phone = 'Enter 10 digit phone number';
     if (!form.email) next.email = 'Email is required';
@@ -51,7 +55,9 @@ export default function SignupPage() {
       reg_no: form.registerNumber,
       name: form.fullName,
       department: form.department,
+      department: form.department,
       gender: form.gender,
+      stay_type: form.stay_type,
       phone: form.phone,
       email: form.email,
       password: form.password
@@ -59,15 +65,10 @@ export default function SignupPage() {
 
     try {
       const result = await signup(userData);
-      // After successful signup, show onboarding if not seen
-      const hasOnboarded = localStorage.getItem('onboarded') === 'true';
-      if (!hasOnboarded) {
-        navigate('/onboarding');
-      } else {
-        alert('Account created successfully. Please sign in.');
-        navigate('/login');
-      }
+      // Always show onboarding for new signups
+      navigate('/onboarding');
     } catch (err) {
+      console.error('Signup error:', err);
       setErrors({ email: err.message });
     }
   };
@@ -116,6 +117,7 @@ export default function SignupPage() {
             </div>
             <div>
               <div className="flex items-center gap-4 text-sm">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">Gender:</span>
                 {['Male', 'Female', 'Other'].map((g) => (
                   <label key={g} className="inline-flex items-center gap-2 cursor-pointer">
                     <input
@@ -132,6 +134,27 @@ export default function SignupPage() {
                 ))}
               </div>
               {errors.gender && <p className="text-xs text-red-600 mt-1">{errors.gender}</p>}
+            </div>
+
+            <div>
+              <div className="flex items-center gap-4 text-sm">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">Stay Type:</span>
+                {['Hostel', 'Day Scholar'].map((s) => (
+                  <label key={s} className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="stay_type"
+                      value={s}
+                      checked={form.stay_type === s}
+                      onChange={update('stay_type')}
+                      aria-label={`Stay Type ${s}`}
+                      className="text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">{s}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.stay_type && <p className="text-xs text-red-600 mt-1">{errors.stay_type}</p>}
             </div>
             <div>
               <input

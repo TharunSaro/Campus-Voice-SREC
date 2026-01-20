@@ -24,9 +24,9 @@ export default function Onboarding() {
   const next = () => {
     if (isLast) {
       localStorage.setItem('onboarded', 'true');
-      // Clear last tab to ensure onboarding completion goes to home
+      // Clear last tab to ensure onboarding completion goes to login
       localStorage.removeItem('cv_last_tab');
-      navigate('/home');
+      navigate('/login');
     } else {
       setIdx((i) => Math.min(i + 1, slides.length - 1));
     }

@@ -1,8 +1,9 @@
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'http://127.0.0.1:5000/api/auth';
 
 const login = async (email, password) => {
     const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
+        mode: 'cors',
         headers: {
             'Content-Type': 'application/json',
         },
@@ -31,6 +32,7 @@ const login = async (email, password) => {
 const signup = async (userData) => {
     const response = await fetch(`${API_URL}/signup`, {
         method: 'POST',
+        mode: 'cors',
         headers: {
             'Content-Type': 'application/json',
         },

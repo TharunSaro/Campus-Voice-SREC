@@ -8,10 +8,10 @@ const router = express.Router();
 // POST /api/auth/signup
 router.post('/signup', async (req, res) => {
   try {
-    const { reg_no, name, department, gender, phone, email, password } = req.body;
+    const { reg_no, name, department, gender, stay_type, phone, email, password } = req.body;
 
     // Validate required fields
-    if (!reg_no || !name || !department || !gender || !phone || !email || !password) {
+    if (!reg_no || !name || !department || !gender || !stay_type || !phone || !email || !password) {
       return res.status(400).json({
         error: 'All fields are required'
       });
@@ -46,9 +46,9 @@ router.post('/signup', async (req, res) => {
 
     // Insert user into database
     const insertUserQuery = `
-      INSERT INTO users (reg_no, name, department, gender, phone, email, password)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, reg_no, name, department, gender, phone, email, created_at
+      INSERT INTO users (reg_no, name, department, gender, stay_type, phone, email, password)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id, reg_no, name, department, gender, stay_type, phone, email, created_at
     `;
 
     const result = await pool.query(insertUserQuery, [
@@ -56,6 +56,7 @@ router.post('/signup', async (req, res) => {
       name,
       department,
       gender,
+      stay_type,
       phone,
       normalizedEmail,
       hashedPassword
@@ -72,6 +73,7 @@ router.post('/signup', async (req, res) => {
         name: newUser.name,
         department: newUser.department,
         gender: newUser.gender,
+        stay_type: newUser.stay_type,
         phone: newUser.phone,
         email: newUser.email,
         created_at: newUser.created_at
@@ -100,7 +102,7 @@ router.post('/login', async (req, res) => {
 
     // Verify user exists
     const getUserQuery = `
-      SELECT id, reg_no, name, department, gender, phone, email, password, created_at
+      SELECT id, reg_no, name, department, gender, stay_type, phone, email, password, created_at
       FROM users 
       WHERE email = $1
     `;
@@ -144,6 +146,7 @@ router.post('/login', async (req, res) => {
         name: user.name,
         department: user.department,
         gender: user.gender,
+        stay_type: user.stay_type,
         phone: user.phone,
         email: user.email,
         created_at: user.created_at

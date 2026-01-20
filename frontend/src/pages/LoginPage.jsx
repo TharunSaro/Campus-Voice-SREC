@@ -29,6 +29,7 @@ export default function LoginPage() {
       console.log('Login successful:', response);
       navigate('/dashboard', { replace: true });
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.message || 'Login failed');
     }
   };

@@ -8,22 +8,7 @@ import NewComplaintModal from '../components/NewComplaintModal';
 
 const CATEGORIES = ['Hostel', 'Mess', 'Academics', 'Infrastructure', 'Transport', 'Other'];
 
-const initialFeed = Array.from({ length: 8 }).map((_, i) => ({
-  id: i + 1,
-  title: [
-    'Wi-Fi issues in hostel',
-    'Mess food quality',
-    'Classroom projector broken',
-    'Bus delay on Route 3',
-  ][i % 4],
-  category: CATEGORIES[i % CATEGORIES.length],
-  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus.',
-  timestamp: new Date(Date.now() - i * 3600_000).toISOString(),
-  status: ['Open', 'In Progress', 'Resolved'][i % 3],
-  upvotes: Math.floor(Math.random() * 120),
-  authorId: i % 2 === 0 ? 1 : 2, // sample user IDs
-  image: '/placeholder.png'
-}));
+const initialFeed = [];
 
 export default function StudentHome() {
   const { user, logout } = useAuth();
@@ -58,9 +43,16 @@ export default function StudentHome() {
 
         {activeTab === 'home' ? (
           <div className="space-y-3">
-            {feed.map((item) => (
-              <ComplaintCard key={item.id} complaint={item} />
-            ))}
+            {feed.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-gray-500 text-lg">No active complaints.</p>
+                <p className="text-gray-400 text-sm">Complaints will appear here once submitted.</p>
+              </div>
+            ) : (
+              feed.map((item) => (
+                <ComplaintCard key={item.id} complaint={item} />
+              ))
+            )}
           </div>
         ) : (
           <div className="space-y-4">
