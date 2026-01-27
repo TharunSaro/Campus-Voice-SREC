@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import StudentHome from './pages/StudentHome';
+import ComplaintDetails from './pages/ComplaintDetails';
 import AdminDashboard from './pages/AdminDashboard';
 import InstallPrompt from './components/InstallPrompt';
 import SignupPage from './pages/SignupPage';
@@ -45,15 +46,23 @@ export default function App() {
         <Route
           path="/home"
           element={
-            <ProtectedRoute allow={[ 'student', 'admin' ]}>
+            <ProtectedRoute allow={['student', 'admin']}>
               <StudentHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/complaint/:id"
+          element={
+            <ProtectedRoute allow={['student', 'admin']}>
+              <ComplaintDetails />
             </ProtectedRoute>
           }
         />
         <Route
           path="/posts"
           element={
-            <ProtectedRoute allow={[ 'student', 'admin' ]}>
+            <ProtectedRoute allow={['student', 'admin']}>
               <Posts />
             </ProtectedRoute>
           }
@@ -61,7 +70,7 @@ export default function App() {
         <Route
           path="/notifications"
           element={
-            <ProtectedRoute allow={[ 'student', 'admin' ]}>
+            <ProtectedRoute allow={['student', 'admin']}>
               <Notifications />
             </ProtectedRoute>
           }
@@ -69,7 +78,7 @@ export default function App() {
         <Route
           path="/my-complaints"
           element={
-            <ProtectedRoute allow={[ 'student', 'admin' ]}>
+            <ProtectedRoute allow={['student', 'admin']}>
               <MyComplaints />
             </ProtectedRoute>
           }
@@ -77,7 +86,7 @@ export default function App() {
         <Route
           path="/submit"
           element={
-            <ProtectedRoute allow={[ 'student', 'admin' ]}>
+            <ProtectedRoute allow={['student', 'admin']}>
               <SubmitComplaint />
             </ProtectedRoute>
           }
@@ -85,7 +94,7 @@ export default function App() {
         <Route
           path="/profile"
           element={
-            <ProtectedRoute allow={[ 'student', 'admin' ]}>
+            <ProtectedRoute allow={['student', 'admin']}>
               <Profile />
             </ProtectedRoute>
           }
@@ -93,7 +102,7 @@ export default function App() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allow={[ 'admin' ]}>
+            <ProtectedRoute allow={['admin']}>
               <AdminDashboard />
             </ProtectedRoute>
           }

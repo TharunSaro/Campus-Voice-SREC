@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Badge, Card, Skeleton } from '../components/UI';
 import { TopNav } from '../components/Navbars';
 import BottomNav from '../components/BottomNav';
 import ComplaintCard from '../components/ComplaintCard';
 import NewComplaintModal from '../components/NewComplaintModal';
+import complaintService from '../services/complaint.service';
 
 const CATEGORIES = ['Hostel', 'Mess', 'Academics', 'Infrastructure', 'Transport', 'Other'];
 
@@ -12,10 +13,38 @@ const initialFeed = [];
 
 export default function StudentHome() {
   const { user, logout } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [feed, setFeed] = useState(initialFeed);
   const [activeTab, setActiveTab] = useState('home'); // home / posts
   const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    const fetchFeed = async () => {
+      if (activeTab === 'home') {
+        try {
+          setLoading(true);
+          const data = await complaintService.getPublicComplaints();
+          console.log("Public Feed Data:", data);
+          if (Array.isArray(data)) {
+            setFeed(data);
+          } else if (data && Array.isArray(data.complaints)) {
+            setFeed(data.complaints);
+          } else if (data && Array.isArray(data.data)) {
+            setFeed(data.data);
+          } else {
+            console.error("API returned unexpected format:", data);
+            setFeed([]);
+          }
+        } catch (error) {
+          console.error("Failed to load feed:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchFeed();
+  }, [activeTab]);
 
   const handleNewComplaint = (newComplaint) => {
     setFeed([newComplaint, ...feed]);
@@ -50,7 +79,19 @@ export default function StudentHome() {
               </div>
             ) : (
               feed.map((item) => (
-                <ComplaintCard key={item.id} complaint={item} />
+                <ComplaintCard
+                  key={item.id || item.complaint_id}
+                  id={item.id || item.complaint_id}
+                  title={item.title}
+                  desc={item.description}
+                  category={item.category}
+                  img={item.image_url}
+                  author={item.student_name}
+                  status={item.status}
+                  priority={item.priority}
+                  upvotes={item.upvotes}
+                  timestamp={item.submitted_at}
+                />
               ))
             )}
           </div>
@@ -68,7 +109,21 @@ export default function StudentHome() {
             ) : (
               feed
                 .filter((f) => f.authorId === user?.id)
-                .map((item) => <ComplaintCard key={item.id} complaint={item} />)
+                .map((item) => (
+                  <ComplaintCard
+                    key={item.id || item.complaint_id}
+                    id={item.id || item.complaint_id}
+                    title={item.title}
+                    desc={item.description}
+                    category={item.category}
+                    img={item.image_url}
+                    author={item.student_name}
+                    status={item.status}
+                    priority={item.priority}
+                    upvotes={item.upvotes}
+                    timestamp={item.submitted_at}
+                  />
+                ))
             )}
           </div>
         )}

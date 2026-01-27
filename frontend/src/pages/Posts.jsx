@@ -17,6 +17,7 @@ export default function Posts() {
     visibility: 'public',
     skipEscalation: false,
   });
+  const [imagePreview, setImagePreview] = useState(null);
   const [myPosts, setMyPosts] = useState([]);
   const [submitted, setSubmitted] = useState(false);
   const [apiResponse, setApiResponse] = useState(null);
@@ -30,8 +31,79 @@ export default function Posts() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({ ...formData, image: file });
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadToCloudinary = async (file) => {
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", "campus_voice_unsigned");
+    data.append("folder", "campus_voice/complaints");
+
+    try {
+      console.log("Starting Cloudinary upload..."); // Debug log
+      const res = await fetch("https://api.cloudinary.com/v1_1/dl8oqrw3e/image/upload", {
+        method: "POST",
+        body: data,
+        // mode: 'cors', // Optional, usually default
+        // Headers are automatically set by browser for FormData (do NOT set Content-Type)
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("Cloudinary Error Details:", errorData);
+        throw new Error(`Image upload failed: ${errorData.error?.message || res.statusText}`);
+      }
+
+      const json = await res.json();
+      console.log("Cloudinary Upload Success:", json); // Debug log
+      return json.secure_url;
+    } catch (error) {
+      console.error("Cloudinary Upload Error:", error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    const fetchMyComplaints = async () => {
+      if (activeTab === 'mine' && user?.reg_no) {
+        try {
+          const response = await complaintService.getMyComplaints(user.reg_no);
+          console.log("My Posts API Response:", response);
+
+          if (Array.isArray(response)) {
+            setMyPosts(response);
+          } else if (response && Array.isArray(response.complaints)) {
+            setMyPosts(response.complaints);
+          } else if (response && Array.isArray(response.data)) {
+            setMyPosts(response.data);
+          } else {
+            console.error("Unexpected format for My Posts:", response);
+            setMyPosts([]);
+          }
+        } catch (error) {
+          console.error("Failed to fetch complaints:", error);
+          setMyPosts([]);
+        }
+      }
+    };
+
+    fetchMyComplaints();
+  }, [activeTab, user?.reg_no]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation
+    if (!formData.title || !formData.description) {
+      alert('Title and Description are required.');
+      return;
+    }
 
     // Public complaints MUST have an image
     if (formData.visibility === 'public' && !formData.image) {
@@ -39,106 +111,114 @@ export default function Posts() {
       return;
     }
 
-    const newPost = {
-      ...formData,
-      id: Date.now(),
-      createdAt: new Date().toLocaleString(),
-    };
+    setIsSubmitting(true);
 
-    setMyPosts([newPost, ...myPosts]);
-    setFormData({
-      title: '',
-      description: '',
-      image: null,
-      visibility: 'public',
-      skipEscalation: false,
-    });
+    try {
+      let imageUrl = '';
+      if (formData.image) {
+        imageUrl = await uploadToCloudinary(formData.image);
+      }
 
-    // Show success screen
-    setSubmitted(true);
+      const payload = {
+        name: user?.name,
+        register_number: user?.reg_no,
+        department: user?.department,
+        stay_type: user?.stay_type,
+        visibility: formData.visibility === 'public' ? 'Public' : 'Private',
+        title: formData.title,
+        description: formData.description,
+        image_url: imageUrl,
+      };
 
-    // Reset file input
-    const fileInput = document.querySelector('input[type="file"]');
-    if (fileInput) fileInput.value = '';
+      const response = await complaintService.createComplaint(payload);
 
-    // Redirect to home after showing success message (5 seconds)
-    setTimeout(() => {
-      setSubmitted(false);
-      navigate('/home');
-    }, 5000);
+      setApiResponse(response);
+      setSubmitted(true);
+
+      const newPost = {
+        ...formData,
+        id: Date.now(),
+        createdAt: new Date().toLocaleString(),
+        ...response,
+        image_url: imageUrl // Ensure local update shows proper image
+      };
+      setMyPosts([newPost, ...myPosts]);
+
+      setFormData({
+        title: '',
+        description: '',
+        image: null,
+        visibility: 'public',
+        skipEscalation: false,
+      });
+      setImagePreview(null);
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message || 'Failed to submit complaint');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Success screen (GPay-style)
-  if (submitted) {
+  // Success screen with AI Response
+  if (submitted && apiResponse) {
     return (
       <div className="fixed inset-0 z-50 min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full mx-auto p-8 text-center bg-white rounded-2xl shadow-xl">
-          {/* Animated Success Circle with Checkmark */}
-          <div className="mb-8 flex justify-center">
-            <div className="relative w-32 h-32">
-              {/* Outer Circle - animated drawing */}
-              <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 120 120">
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="54"
-                  fill="none"
-                  stroke="#10b981"
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                  strokeDasharray="339.292"
-                  strokeDashoffset="339.292"
-                  className="animate-drawCircle"
-                />
+        <div className="max-w-lg w-full mx-auto p-8 bg-white rounded-2xl shadow-xl overflow-y-auto max-h-[90vh]">
+          {/* Animated Success Circle */}
+          <div className="mb-6 flex justify-center">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
+            </div>
+          </div>
 
-              {/* Checkmark - appears after circle is drawn */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 animate-[fadeIn_0.3s_ease-out_0.6s_forwards]">
-                <svg
-                  className="w-16 h-16 text-green-600 animate-checkmark"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  style={{
-                    strokeDasharray: 40,
-                    strokeDashoffset: 40
-                  }}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={4}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Complaint Submitted!</h2>
+            <p className="text-gray-600">AI has analyzed your complaint.</p>
+          </div>
+
+          <div className="space-y-4 bg-gray-50 p-6 rounded-xl border border-gray-100 mb-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Status</span>
+                <p className="font-semibold text-gray-900">{apiResponse.status || 'Pending'}</p>
+              </div>
+              <div>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Category</span>
+                <p className="font-medium text-blue-600">{apiResponse.category || '-'}</p>
+              </div>
+              <div>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Priority</span>
+                <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold mt-1
+                     ${apiResponse.priority === 'High' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                  {apiResponse.priority || 'Normal'}
+                </span>
+              </div>
+              <div>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Assigned To</span>
+                <p className="font-medium text-gray-900">{apiResponse.assigned_to || 'Admin'}</p>
               </div>
             </div>
-          </div>
 
-          {/* Success Messages */}
-          <div className="space-y-4 animate-fadeInDelay">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Grievance Submitted Successfully!
-            </h2>
-
-            <p className="text-lg text-gray-700 leading-relaxed">
-              The complaint will be reviewed by AI and posted
-            </p>
-
-            <p className="text-base text-gray-600 leading-relaxed">
-              Thank you for your feedback. Your voice helps make SREC a better place.
-            </p>
-          </div>
-
-          {/* Loading indicator */}
-          <div className="mt-8 animate-fadeInDelay">
-            <div className="inline-flex items-center gap-2 text-sm text-gray-500">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-              <span className="ml-2">Redirecting...</span>
+            <div className="pt-2 border-t border-gray-200">
+              <span className="text-xs text-gray-500 uppercase tracking-wide">AI Summary</span>
+              <p className="text-sm text-gray-700 mt-1 italic">"{apiResponse.summary || 'No summary available.'}"</p>
             </div>
           </div>
+
+          <button
+            onClick={() => {
+              setSubmitted(false);
+              setApiResponse(null);
+              navigate('/home');
+            }}
+            className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition shadow-lg shadow-blue-200"
+          >
+            Go to Home
+          </button>
         </div>
       </div>
     );
@@ -272,13 +352,34 @@ export default function Posts() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) =>
-                    setFormData({ ...formData, image: e.target.files[0] })
-                  }
+                  onChange={handleImageChange}
                   required={formData.visibility === 'public'}
                   className={`w-full border rounded-lg px-3 py-2 bg-gray-50 ${formData.visibility === 'public' && !formData.image ? 'border-blue-300' : ''
                     }`}
                 />
+
+                {imagePreview && (
+                  <div className="mt-2 relative">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="h-40 w-full object-cover rounded-lg border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, image: null });
+                        setImagePreview(null);
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md"
+                      title="Remove Image"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
 
               <button
@@ -297,30 +398,68 @@ export default function Posts() {
         {/* --- My Posts --- */}
         {activeTab === 'mine' && (
           <div className="space-y-4">
-            {myPosts.length === 0 ? (
+            {(!Array.isArray(myPosts) || myPosts.length === 0) ? (
               <Card className="p-6 text-center">
-                <p className="text-gray-500">You haven’t posted anything yet.</p>
+                <p className="text-gray-500">No complaints submitted yet.</p>
               </Card>
             ) : (
-              myPosts.map((post) => (
-                <Card key={post.id} className="p-5">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {post.title}
-                  </h3>
-                  <p className="text-sm text-gray-500">{post.createdAt}</p>
-                  <p className="mt-2 text-gray-700">{post.description}</p>
-                  <p className="mt-1 text-sm text-blue-600 font-medium capitalize">
-                    {post.visibility} {post.skipEscalation ? '(Escalated)' : ''}
-                  </p>
-                  {post.image && (
-                    <img
-                      src={URL.createObjectURL(post.image)}
-                      alt="Grievance"
-                      className="mt-3 w-full rounded-lg object-cover max-h-64"
-                    />
-                  )}
-                </Card>
-              ))
+              myPosts.map((post) => {
+                const dateStr = post.submitted_at || post.created_at || post.createdAt;
+                const isValidDate = dateStr && !isNaN(new Date(dateStr).getTime());
+
+                return (
+                  <Card key={post.id || post.complaint_id || Math.random()} className="p-5">
+                    <div className="flex justify-between items-start">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {post.title}
+                      </h3>
+                      <span className={`px-2 py-1 rounded text-xs font-semibold
+                        ${post.status === 'Resolved' ? 'bg-green-100 text-green-700' :
+                          post.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'}`}>
+                        {post.status || 'Pending'}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-gray-400 mt-1 mb-2">
+                      Submitted on: {isValidDate ? new Date(dateStr).toLocaleString() : 'Date unavailable'}
+                    </div>
+
+                    <p className="text-gray-700 text-sm leading-relaxed mb-3">{post.description}</p>
+
+                    {post.image_url && (
+                      <img
+                        src={post.image_url}
+                        alt="Grievance"
+                        className="w-full rounded-lg object-cover max-h-64 mb-3"
+                        onError={(e) => { e.target.style.display = 'none' }}
+                      />
+                    )}
+
+                    <div className="flex flex-wrap gap-4 text-xs text-gray-600 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold">Category:</span> {post.category || 'Uncategorized'}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold">Priority:</span> {post.priority || 'Normal'}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold">Visibility:</span> <span className="capitalize">{post.visibility || 'Public'}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold">Assigned To:</span> {post.assigned_authority || 'Pending Assignment'}
+                      </div>
+                      <div className="flex items-center gap-3 ml-auto">
+                        <span className="flex items-center gap-1 text-green-600">
+                          👍 {post.upvotes || 0}
+                        </span>
+                        <span className="flex items-center gap-1 text-red-600">
+                          👎 {post.downvotes || 0}
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })
             )}
           </div>
         )}
