@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from './UI';
 import { useAuth } from '../context/AuthContext';
 import complaintService from '../services/complaint.service';
+import { ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
 
 export default function ComplaintCard({
   id,
@@ -88,48 +89,65 @@ export default function ComplaintCard({
   };
 
   return (
-    <Link to={`/complaint/${id}`} className="block">
-      <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden transition hover:shadow-md cursor-pointer">
+    <Link to={`/complaint/${id}`} className="block group">
+      <div className="bg-surface rounded-xl shadow-neu-flat border border-white/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         {img && (
-          <img src={img} alt={title} className="w-full h-48 object-cover" />
-        )}
-        <div className="p-4">
-          <div className="flex justify-between items-start mb-2">
-            <Badge type={status}>{status || 'Pending'}</Badge>
-            <span className="text-xs text-gray-400">
-              {timestamp ? new Date(timestamp).toLocaleDateString() : ''}
-            </span>
+          <div className="relative h-48 overflow-hidden">
+            <img
+              src={img}
+              alt={title}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
+            <div className="absolute bottom-3 left-3 flex items-center gap-2">
+              <Badge type={status}>{status || 'Pending'}</Badge>
+            </div>
           </div>
+        )}
 
-          <h3 className="font-semibold text-lg text-gray-900 mb-1">{title}</h3>
-          <p className="text-gray-600 text-sm mb-3 line-clamp-3">{desc}</p>
+        <div className="p-5">
+          {!img && (
+            <div className="flex justify-between items-start mb-3">
+              <Badge type={status}>{status || 'Pending'}</Badge>
+              <span className="text-xs font-medium text-gray-400">
+                {timestamp ? new Date(timestamp).toLocaleDateString() : ''}
+              </span>
+            </div>
+          )}
 
-          <div className="flex justify-between items-center text-xs mt-4 pt-3 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">{category}</span>
-              {priority && <span className={`px-2 py-1 rounded font-medium ${priority === 'High' ? 'text-red-600 bg-red-50' : 'text-gray-500'}`}>{priority}</span>}
+          <h3 className="font-bold text-lg text-gray-900 mb-2 leading-tight group-hover:text-brand transition-colors">{title}</h3>
+          <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">{desc}</p>
+
+          <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="px-2.5 py-1 rounded-md bg-gray-50 text-gray-600 font-medium border border-gray-100">{category}</span>
+              {priority && priority !== 'Low' && (
+                <span className={`px-2 py-1 rounded-md font-medium border ${priority === 'High' ? 'text-error bg-red-50 border-red-100' : 'text-amber-600 bg-amber-50 border-amber-100'}`}>
+                  {priority}
+                </span>
+              )}
             </div>
 
-            <div className="flex items-center gap-3 text-gray-500">
+            <div className="flex items-center gap-4 text-gray-500 text-sm font-medium">
               <button
                 onClick={(e) => handleVote(e, 'upvote')}
                 disabled={isVoting}
-                className={`flex items-center gap-1 transition ${userVote === 'upvote' ? 'text-green-600 font-bold' : 'text-gray-500 hover:text-green-600'}`}
+                className={`flex items-center gap-1.5 transition-colors ${userVote === 'upvote' ? 'text-success' : 'hover:text-success'}`}
                 title="Upvote"
               >
-                👍 {voteCount.up}
+                <ThumbsUp size={16} className={userVote === 'upvote' ? 'fill-current' : ''} />
+                <span>{voteCount.up}</span>
               </button>
-              <span>•</span>
+
               <button
                 onClick={(e) => handleVote(e, 'downvote')}
                 disabled={isVoting}
-                className={`flex items-center gap-1 transition ${userVote === 'downvote' ? 'text-red-600 font-bold' : 'text-gray-500 hover:text-red-600'}`}
+                className={`flex items-center gap-1.5 transition-colors ${userVote === 'downvote' ? 'text-error' : 'hover:text-error'}`}
                 title="Downvote"
               >
-                👎 {voteCount.down}
+                <ThumbsDown size={16} className={userVote === 'downvote' ? 'fill-current' : ''} />
+                <span>{voteCount.down}</span>
               </button>
-              <span>•</span>
-              <span>{author}</span>
             </div>
           </div>
         </div>

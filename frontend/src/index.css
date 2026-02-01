@@ -4,11 +4,16 @@
 
 /* App base styles */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 }
 
 html, body, #root {
   height: 100%;
+  @apply bg-background text-gray-800 antialiased;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
 }
 
 /* Success Animation Styles */

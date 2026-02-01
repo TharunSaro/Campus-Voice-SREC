@@ -1,81 +1,108 @@
 import React from 'react';
 import { TopNav } from '../components/Navbars';
 import BottomNav from '../components/BottomNav';
+import { Card, Button } from '../components/UI';
 import { useAuth } from '../context/AuthContext';
+import { LogOut, User, Mail, Hash, Building, BookOpen, Phone } from 'lucide-react';
 
 export default function Profile() {
   const { user, logout } = useAuth();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <TopNav />
-      <div className="max-w-5xl mx-auto p-4 sm:p-6 pb-20 md:pl-20">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6">Profile</h1>
+      <div className="max-w-2xl mx-auto p-4 sm:p-6 pb-24 md:pl-24 transition-all duration-300">
+        <h1 className="text-2xl font-bold text-gray-900 mb-6 tracking-tight">Your Profile</h1>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-brand flex items-center justify-center">
-              <span className="text-white text-2xl font-semibold">
+        <Card className="shadow-neu-flat overflow-hidden">
+          <div className="bg-gradient-to-r from-brand to-brand-light h-32 relative">
+            <div className="absolute -bottom-10 left-6 p-1 bg-surface rounded-full">
+              <div className="w-20 h-20 rounded-full bg-slate-200 border-4 border-white flex items-center justify-center text-slate-500 font-bold text-3xl shadow-md">
                 {user?.name?.[0]?.toUpperCase() || 'U'}
-              </span>
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">{user?.name || 'User'}</h2>
-              <p className="text-sm text-gray-600">{user?.email || ''}</p>
-              <span className="inline-block mt-1 text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700">
-                {user?.role || 'Student'}
-              </span>
+              </div>
             </div>
           </div>
 
-          <div className="border-t border-gray-100 pt-4 space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Account Details</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <span className="block text-gray-500 text-xs uppercase tracking-wide">Registration Number</span>
-                <span className="font-medium text-gray-900">{user?.reg_no || '-'}</span>
-              </div>
-
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <span className="block text-gray-500 text-xs uppercase tracking-wide">Full Name</span>
-                <span className="font-medium text-gray-900">{user?.name || '-'}</span>
-              </div>
-
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <span className="block text-gray-500 text-xs uppercase tracking-wide">Department</span>
-                <span className="font-medium text-gray-900">{user?.department || '-'}</span>
-              </div>
-
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <span className="block text-gray-500 text-xs uppercase tracking-wide">Gender</span>
-                <span className="font-medium text-gray-900">{user?.gender || '-'}</span>
-              </div>
-
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <span className="block text-gray-500 text-xs uppercase tracking-wide">Stay Type</span>
-                <span className="font-medium text-gray-900">{user?.stay_type || '-'}</span>
-              </div>
-
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <span className="block text-gray-500 text-xs uppercase tracking-wide">Phone Number</span>
-                <span className="font-medium text-gray-900">{user?.phone || '-'}</span>
-              </div>
-
-              <div className="p-3 bg-gray-50 rounded-lg md:col-span-2">
-                <span className="block text-gray-500 text-xs uppercase tracking-wide">Email Address</span>
-                <span className="font-medium text-gray-900">{user?.email || '-'}</span>
+          <div className="pt-12 px-6 pb-8">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">{user?.name || 'User Name'}</h2>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-gray-500 text-sm">{user?.email || 'email@example.com'}</p>
+                <span className="inline-block h-1 w-1 bg-gray-300 rounded-full"></span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-brand/10 text-brand uppercase tracking-wide">
+                  {user?.role || 'Student'}
+                </span>
               </div>
             </div>
 
-            <button
-              onClick={logout}
-              className="w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors mt-6 border border-red-100 flex items-center justify-center font-medium"
-            >
-              Sign Out
-            </button>
+            <div className="border-t border-gray-100 pt-6 space-y-6">
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Personal Details</h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-4 text-sm">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-gray-50 text-gray-400">
+                    <Hash size={18} />
+                  </div>
+                  <div>
+                    <span className="block text-gray-500 text-xs">Register Number</span>
+                    <span className="font-medium text-gray-900 block mt-0.5">{user?.reg_no || 'N/A'}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-gray-50 text-gray-400">
+                    <User size={18} />
+                  </div>
+                  <div>
+                    <span className="block text-gray-500 text-xs">Gender</span>
+                    <span className="font-medium text-gray-900 block mt-0.5">{user?.gender || 'N/A'}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-gray-50 text-gray-400">
+                    <BookOpen size={18} />
+                  </div>
+                  <div>
+                    <span className="block text-gray-500 text-xs">Department</span>
+                    <span className="font-medium text-gray-900 block mt-0.5">{user?.department || 'N/A'}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-gray-50 text-gray-400">
+                    <Building size={18} />
+                  </div>
+                  <div>
+                    <span className="block text-gray-500 text-xs">Stay Type</span>
+                    <span className="font-medium text-gray-900 block mt-0.5 capitalize">{user?.stay_type || 'N/A'}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-gray-50 text-gray-400">
+                    <Phone size={18} />
+                  </div>
+                  <div>
+                    <span className="block text-gray-500 text-xs">Phone Number</span>
+                    <span className="font-medium text-gray-900 block mt-0.5">{user?.phone || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-gray-100">
+                <Button
+                  onClick={logout}
+                  variant="danger"
+                  className="w-full flex items-center justify-center gap-2 py-3"
+                >
+                  <LogOut size={18} />
+                  Sign Out
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
+        </Card>
       </div>
       {user?.role === 'student' && <BottomNav />}
     </div>

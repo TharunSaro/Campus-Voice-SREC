@@ -8,8 +8,6 @@ import AdminDashboard from './pages/AdminDashboard';
 import InstallPrompt from './components/InstallPrompt';
 import SignupPage from './pages/SignupPage';
 import Onboarding from './pages/Onboarding';
-import MyComplaints from './pages/MyComplaints';
-import SubmitComplaint from './pages/SubmitComplaint';
 import Profile from './pages/Profile';
 import Posts from './pages/Posts';
 import Notifications from './pages/Notifications';
@@ -72,22 +70,6 @@ export default function App() {
           element={
             <ProtectedRoute allow={['student', 'admin']}>
               <Notifications />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/my-complaints"
-          element={
-            <ProtectedRoute allow={['student', 'admin']}>
-              <MyComplaints />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/submit"
-          element={
-            <ProtectedRoute allow={['student', 'admin']}>
-              <SubmitComplaint />
             </ProtectedRoute>
           }
         />

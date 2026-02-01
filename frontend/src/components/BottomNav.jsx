@@ -11,21 +11,21 @@ export default function BottomNav() {
   if (!user || user.role === 'admin') return null;
 
   const navItems = [
-    { 
-      path: '/home', 
-      label: 'Home', 
+    {
+      path: '/home',
+      label: 'Home',
       icon: Home,
       routes: ['/home']
     },
-    { 
-      path: '/posts', 
-      label: 'Posts', 
+    {
+      path: '/posts',
+      label: 'Posts',
       icon: FileText,
       routes: ['/posts']
     },
-    { 
-      path: '/profile', 
-      label: 'Profile', 
+    {
+      path: '/profile',
+      label: 'Profile',
       icon: User,
       routes: ['/profile']
     },
@@ -33,7 +33,7 @@ export default function BottomNav() {
 
   // Save last visited tab to localStorage
   useEffect(() => {
-    const match = navItems.find((item) => 
+    const match = navItems.find((item) =>
       item.routes.includes(location.pathname)
     );
     if (match) {
@@ -46,15 +46,16 @@ export default function BottomNav() {
     return item.routes.includes(location.pathname);
   };
 
+
   return (
     <>
       {/* Mobile: Bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-gray-200 shadow-lg md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-surface border-t border-gray-100 shadow-[0_-4px_20px_-2px_rgba(0,0,0,0.05)] md:hidden safe-area-pb">
         <div className="h-16 flex items-center justify-around px-2">
           {navItems.map((item) => {
             const active = isActive(item);
             const IconComponent = item.icon;
-            
+
             return (
               <NavLink
                 key={item.path}
@@ -63,56 +64,52 @@ export default function BottomNav() {
                 aria-current={active ? 'page' : undefined}
                 onClick={() => localStorage.setItem('cv_last_tab', item.path)}
                 className={`
-                  relative flex flex-col items-center justify-center flex-1 py-2 
-                  transition-colors duration-200
-                  ${active 
-                    ? 'text-blue-600' 
-                    : 'text-gray-500 hover:text-gray-700'
+                  relative flex flex-col items-center justify-center flex-1 py-1 
+                  transition-all duration-200
+                  ${active
+                    ? 'text-brand'
+                    : 'text-gray-400 hover:text-gray-600'
                   }
                 `}
               >
                 <div className="relative flex flex-col items-center justify-center gap-1">
                   <div className={`
-                    relative p-2 rounded-lg transition-colors
-                    ${active 
-                      ? 'bg-blue-50' 
+                    relative p-1.5 rounded-xl transition-all duration-300
+                    ${active
+                      ? 'bg-brand/10 -translate-y-1'
                       : ''
                     }
                   `}>
-                    <IconComponent 
-                      size={22} 
+                    <IconComponent
+                      size={24}
                       strokeWidth={active ? 2.5 : 2}
-                      className={active ? 'text-blue-600' : ''}
+                      className={active ? 'text-brand drop-shadow-sm' : ''}
                     />
                   </div>
                   <span className={`
-                    text-xs font-medium transition-colors
-                    ${active 
-                      ? 'text-blue-600' 
-                      : 'text-gray-500'
+                    text-[10px] font-semibold transition-colors
+                    ${active
+                      ? 'text-brand'
+                      : 'text-gray-400'
                     }
                   `}>
                     {item.label}
                   </span>
-                  {/* Active indicator dot */}
-                  {active && (
-                    <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full" />
-                  )}
                 </div>
               </NavLink>
             );
           })}
         </div>
         {/* Safe area for devices with home indicator */}
-        <div className="h-[env(safe-area-inset-bottom,0px)] bg-white" />
+        <div className="h-[env(safe-area-inset-bottom,0px)] bg-surface" />
       </nav>
 
       {/* Desktop: Left sidebar */}
-      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 z-20 w-16 flex-col items-center bg-white/80 backdrop-blur-sm border-r border-gray-200 pt-4">
+      <nav className="hidden md:flex fixed left-0 top-16 bottom-0 z-20 w-20 flex-col items-center bg-surface border-r border-gray-100 pt-6 shadow-sm">
         {navItems.map((item) => {
           const active = isActive(item);
           const IconComponent = item.icon;
-          
+
           return (
             <NavLink
               key={item.path}
@@ -121,17 +118,17 @@ export default function BottomNav() {
               aria-current={active ? 'page' : undefined}
               onClick={() => localStorage.setItem('cv_last_tab', item.path)}
               className={`
-                group my-2 w-12 h-12 flex items-center justify-center rounded-xl transition-colors duration-200
-                ${active 
-                  ? 'bg-blue-50 text-blue-600' 
-                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                group my-3 w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200
+                ${active
+                  ? 'bg-brand/10 text-brand shadow-inner'
+                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
                 }
               `}
             >
-              <IconComponent 
-                size={22} 
+              <IconComponent
+                size={24}
                 strokeWidth={active ? 2.5 : 2}
-                className={active ? 'text-blue-600' : ''}
+                className={active ? 'text-brand' : ''}
               />
               <span className="sr-only">{item.label}</span>
             </NavLink>

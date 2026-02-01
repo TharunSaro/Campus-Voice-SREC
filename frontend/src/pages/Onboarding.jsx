@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '../components/UI';
 
 const slides = [
   {
@@ -24,7 +25,6 @@ export default function Onboarding() {
   const next = () => {
     if (isLast) {
       localStorage.setItem('onboarded', 'true');
-      // Clear last tab to ensure onboarding completion goes to login
       localStorage.removeItem('cv_last_tab');
       navigate('/login');
     } else {
@@ -33,29 +33,31 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 transition-colors duration-300">
-      <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md p-8 text-center overflow-hidden">
-          <div className="transition-all duration-500 ease-in-out">
-            <div className="text-6xl mb-4 select-none animate-pulse">{slides[idx].icon}</div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{slides[idx].title}</h2>
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 transition-colors duration-300">
+      <div className="w-full max-w-[400px]">
+        <div className="bg-surface border border-white/60 rounded-2xl shadow-neu-flat p-10 text-center overflow-hidden">
+          <div className="transition-all duration-500 ease-in-out py-8">
+            <div className="text-7xl mb-6 select-none animate-pulse drop-shadow-sm">{slides[idx].icon}</div>
+            <h2 className="text-2xl font-bold text-gray-900 leading-tight">{slides[idx].title}</h2>
           </div>
 
-          <div className="flex items-center justify-center gap-2 mt-8">
+          <div className="flex items-center justify-center gap-2 mt-4 mb-8">
             {slides.map((_, i) => (
-              <span key={i} className={`h-2 w-2 rounded-full ${i === idx ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
+              <span key={i} className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${i === idx ? 'bg-brand scale-110' : 'bg-gray-200'}`} />
             ))}
           </div>
 
-          <button
+          <Button
             onClick={next}
             aria-label={isLast ? 'Get Started' : 'Next slide'}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-3 text-sm font-medium transition mt-8"
+            className="w-full py-3 text-base shadow-lg shadow-brand/20"
           >
             {isLast ? 'Get Started' : 'Next'}
-          </button>
+          </Button>
         </div>
-        <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-4">You can change this later in settings.</p>
+        <button className="text-center text-xs text-gray-400 mt-6 w-full hover:text-gray-600 transition-colors">
+          You can change preferences later
+        </button>
       </div>
     </div>
   );

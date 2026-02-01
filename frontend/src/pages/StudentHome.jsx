@@ -1,13 +1,11 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Badge, Card, Skeleton } from '../components/UI';
+import { Badge, Card, Skeleton, Button } from '../components/UI';
 import { TopNav } from '../components/Navbars';
 import BottomNav from '../components/BottomNav';
 import ComplaintCard from '../components/ComplaintCard';
 import NewComplaintModal from '../components/NewComplaintModal';
 import complaintService from '../services/complaint.service';
-
-const CATEGORIES = ['Hostel', 'Mess', 'Academics', 'Infrastructure', 'Transport', 'Other'];
 
 const initialFeed = [];
 
@@ -51,31 +49,28 @@ export default function StudentHome() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <TopNav />
-      <div className="max-w-5xl mx-auto p-4 sm:p-6 pb-20 md:pl-20">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">
+      <div className="max-w-3xl mx-auto p-4 sm:p-6 pb-24 md:pl-24 transition-all duration-300">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
             {activeTab === 'home' ? 'Campus Feed' : 'My Posts'}
           </h2>
-          <button onClick={logout} className="text-sm text-gray-600 hover:text-gray-900">
-            Logout
-          </button>
         </div>
 
         {loading && (
-          <>
-            <Skeleton className="h-28" />
-            <Skeleton className="h-28" />
-          </>
+          <div className="space-y-4">
+            <Skeleton className="h-48 rounded-xl" />
+            <Skeleton className="h-48 rounded-xl" />
+          </div>
         )}
 
         {activeTab === 'home' ? (
-          <div className="space-y-3">
-            {feed.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-gray-500 text-lg">No active complaints.</p>
-                <p className="text-gray-400 text-sm">Complaints will appear here once submitted.</p>
+          <div className="space-y-5">
+            {!loading && feed.length === 0 ? (
+              <div className="text-center py-16 bg-surface rounded-2xl border border-dashed border-gray-300">
+                <p className="text-gray-500 text-lg font-medium">No active complaints.</p>
+                <p className="text-gray-400 text-sm mt-1">Complaints will appear here once submitted.</p>
               </div>
             ) : (
               feed.map((item) => (
@@ -96,16 +91,16 @@ export default function StudentHome() {
             )}
           </div>
         ) : (
-          <div className="space-y-4">
-            <button
+          <div className="space-y-5">
+            <Button
               onClick={() => setShowModal(true)}
-              className="w-full bg-brand text-white py-2 rounded-lg font-medium hover:bg-brand-dark"
+              className="w-full py-3 shadow-lg shadow-brand/20"
             >
               + Create New Complaint
-            </button>
+            </Button>
 
             {feed.filter((f) => f.authorId === user?.id).length === 0 ? (
-              <p className="text-gray-600 text-center mt-6">No posts yet.</p>
+              <p className="text-gray-500 text-center mt-10">No posts yet.</p>
             ) : (
               feed
                 .filter((f) => f.authorId === user?.id)
