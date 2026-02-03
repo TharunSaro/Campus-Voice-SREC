@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { Badge, Card, Skeleton, Button } from '../components/UI';
-import { TopNav } from '../components/Navbars';
-import BottomNav from '../components/BottomNav';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
+import { Badge, Card, Skeleton, RaiseButton } from '../../../components/UI';
+import { TopNav } from '../../../components/Navbars';
+import BottomNav from '../../../components/BottomNav';
 import ComplaintCard from '../components/ComplaintCard';
 import NewComplaintModal from '../components/NewComplaintModal';
-import complaintService from '../services/complaint.service';
+import complaintService from '../../../services/complaint.service';
+import { AlertCircle, FileText } from 'lucide-react';
 
 const initialFeed = [];
 
 export default function StudentHome() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [feed, setFeed] = useState(initialFeed);
   const [activeTab, setActiveTab] = useState('home'); // home / posts
@@ -67,10 +70,24 @@ export default function StudentHome() {
 
         {activeTab === 'home' ? (
           <div className="space-y-5">
+            {/* Prominent Raise an Issue Button */}
+            <RaiseButton
+              onClick={() => navigate('/posts')}
+              className="w-full"
+            >
+              <AlertCircle size={20} />
+              Raise an Issue
+            </RaiseButton>
+
             {!loading && feed.length === 0 ? (
-              <div className="text-center py-16 bg-surface rounded-2xl border border-dashed border-gray-300">
-                <p className="text-gray-500 text-lg font-medium">No active complaints.</p>
-                <p className="text-gray-400 text-sm mt-1">Complaints will appear here once submitted.</p>
+              <div className="text-center py-16 bg-surface rounded-2xl shadow-neu-soft border border-gray-100">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-50 shadow-neu-inset flex items-center justify-center">
+                  <FileText size={28} className="text-gray-400" />
+                </div>
+                <p className="text-gray-600 text-lg font-medium">No issues raised yet</p>
+                <p className="text-gray-400 text-sm mt-2 max-w-xs mx-auto">
+                  Be the first to raise a concern! Your voice matters to our campus community.
+                </p>
               </div>
             ) : (
               feed.map((item) => (
@@ -79,6 +96,7 @@ export default function StudentHome() {
                   id={item.id || item.complaint_id}
                   title={item.title}
                   desc={item.description}
+                  summary={item.summary}
                   category={item.category}
                   img={item.image_url}
                   author={item.student_name}

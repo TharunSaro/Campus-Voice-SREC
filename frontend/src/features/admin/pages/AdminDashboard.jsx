@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { Card, Select, Stat, Skeleton, Badge, Button } from '../components/UI';
-import { TopNav, AdminSidebar } from '../components/Navbars';
+import { useAuth } from '../../../context/AuthContext';
+import { Card, Select, Stat, Skeleton, Badge, Button } from '../../../components/UI';
+import { TopNav, AdminSidebar } from '../../../components/Navbars';
 
 const categories = ['All', 'Hostel', 'Mess', 'Academics', 'Infrastructure', 'Transport', 'Other'];
 const statuses = ['All', 'Open', 'In Progress', 'Resolved', 'Escalated'];

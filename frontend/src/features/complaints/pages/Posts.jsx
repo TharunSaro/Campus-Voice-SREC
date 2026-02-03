@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TopNav } from '../components/Navbars';
-import BottomNav from '../components/BottomNav';
-import { Card, Button } from '../components/UI';
+import { TopNav } from '../../../components/Navbars';
+import BottomNav from '../../../components/BottomNav';
+import { Card, Button } from '../../../components/UI';
 import ComplaintCard from '../components/ComplaintCard';
-import { useAuth } from '../context/AuthContext';
-import complaintService from '../services/complaint.service';
-import { Upload, X } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
+import complaintService from '../../../services/complaint.service';
+import { Upload, X, Lock, FileX } from 'lucide-react';
 
 export default function Posts() {
   const { user } = useAuth();
@@ -253,29 +253,37 @@ export default function Posts() {
 
         {activeTab === 'create' && (
           <Card className="p-6 sm:p-8 shadow-neu-flat">
+            {/* Privacy Reassurance Banner */}
+            <div className="flex items-center gap-3 p-4 mb-6 rounded-xl bg-gradient-to-r from-brand/5 to-brand/10 border border-brand/20">
+              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-brand/15 flex items-center justify-center shadow-inner">
+                <Lock size={18} className="text-brand" />
+              </div>
+              <p className="text-sm text-brand-dark font-medium">
+                Your identity is hidden from other students. Only authorities can see your details.
+              </p>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Give it a short title</label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  placeholder="Enter grievance title"
+                  placeholder="e.g., Broken water dispenser in Block A"
                   className={inputClass}
                   required
                 />
               </div>
 
-
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">What exactly happened?</label>
                 <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="Describe your issue..."
+                  placeholder="Tell us the details — where, when, and what you noticed..."
                   rows={4}
                   className={inputClass}
                   required
@@ -333,7 +341,8 @@ export default function Posts() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Evidence {formData.visibility === 'public' && <span className="text-error">*</span>}
+                  Add a photo {formData.visibility === 'public' && <span className="text-error">*</span>}
+                  <span className="text-gray-400 font-normal ml-1">(helps us understand better)</span>
                 </label>
 
                 {!imagePreview ? (
@@ -376,9 +385,17 @@ export default function Posts() {
         {activeTab === 'mine' && (
           <div className="space-y-5">
             {(!Array.isArray(myPosts) || myPosts.length === 0) ? (
-              <div className="text-center py-16 bg-surface rounded-2xl border border-dashed border-gray-300">
-                <p className="text-gray-500 text-lg font-medium">No complaints submitted yet.</p>
-                <Button variant="ghost" className="mt-2 text-brand" onClick={() => setActiveTab('create')}>Create your first one</Button>
+              <div className="text-center py-16 bg-surface rounded-2xl shadow-neu-soft border border-gray-100">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-50 shadow-neu-inset flex items-center justify-center">
+                  <FileX size={28} className="text-gray-400" />
+                </div>
+                <p className="text-gray-600 text-lg font-medium">You haven't raised any issues yet</p>
+                <p className="text-gray-400 text-sm mt-2 max-w-xs mx-auto">
+                  Your submitted issues will appear here so you can track their progress.
+                </p>
+                <Button variant="ghost" className="mt-4 text-brand font-semibold" onClick={() => setActiveTab('create')}>
+                  Raise your first issue →
+                </Button>
               </div>
             ) : (
               myPosts.map((post) => (
@@ -387,6 +404,7 @@ export default function Posts() {
                   id={post.id || post.complaint_id}
                   title={post.title}
                   desc={post.description}
+                  summary={post.summary || post.llm_analysis?.summary}
                   category={post.category}
                   img={post.image_url}
                   author={post.name || user?.name || "You"}
@@ -394,6 +412,7 @@ export default function Posts() {
                   priority={post.priority}
                   upvotes={post.upvotes}
                   timestamp={post.submitted_at || post.created_at}
+                  isOwner={true}
                 />
               ))
             )}

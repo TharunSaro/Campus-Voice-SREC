@@ -1,6 +1,6 @@
 // src/components/NewComplaintModal.jsx
 import { useState } from "react";
-import { Button, Select } from "./UI";
+import { Button, Select } from "../../../components/UI";
 
 export default function NewComplaintModal({ isOpen, onClose, onAdd }) {
   const [form, setForm] = useState({ title: "", desc: "", category: "", img: null });

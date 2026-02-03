@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/UI';
+import { useAuth } from '../../../context/AuthContext';
+import { Button } from '../../../components/UI';
 
 export default function LoginPage() {
   const { login } = useAuth();

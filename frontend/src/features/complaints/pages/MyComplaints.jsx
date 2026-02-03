@@ -1,7 +1,7 @@
 import React from 'react';
-import { TopNav } from '../components/Navbars';
-import BottomNav from '../components/BottomNav';
-import { useAuth } from '../context/AuthContext';
+import { TopNav } from '../../../components/Navbars';
+import BottomNav from '../../../components/BottomNav';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function MyComplaints() {
   const { user } = useAuth();

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TopNav } from '../components/Navbars';
-import BottomNav from '../components/BottomNav';
-import { Card } from '../components/UI';
-import { useAuth } from '../context/AuthContext';
+import { TopNav } from '../../../components/Navbars';
+import BottomNav from '../../../components/BottomNav';
+import { Card } from '../../../components/UI';
+import { useAuth } from '../../../context/AuthContext';
 
 const CATEGORIES = ['Hostel', 'Mess', 'Academics', 'Infrastructure', 'Transport', 'Other'];
 
@@ -26,10 +26,10 @@ export default function SubmitComplaint() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitted(true);
-    
+
     // Trigger circle animation immediately
     setShowCheckmark(true);
-    
+
     // Redirect to home after showing success message (4 seconds)
     setTimeout(() => {
       navigate('/home');
@@ -73,23 +73,23 @@ export default function SubmitComplaint() {
                   className="animate-drawCircle"
                 />
               </svg>
-              
+
               {/* Checkmark - appears after circle is drawn */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 animate-[fadeIn_0.3s_ease-out_0.6s_forwards]">
-                <svg 
+                <svg
                   className="w-16 h-16 text-green-600 animate-checkmark"
-                  fill="none" 
-                  stroke="currentColor" 
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                   style={{
                     strokeDasharray: 40,
                     strokeDashoffset: 40
                   }}
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={4} 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={4}
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
@@ -102,11 +102,11 @@ export default function SubmitComplaint() {
             <h2 className="text-2xl font-bold text-gray-900">
               Complaint Submitted Successfully!
             </h2>
-            
+
             <p className="text-lg text-gray-700 leading-relaxed">
               The complaint will be reviewed by AI and posted
             </p>
-            
+
             <p className="text-base text-gray-600 leading-relaxed">
               Thank you for your feedback. Your voice helps make SREC a better place.
             </p>
@@ -134,75 +134,75 @@ export default function SubmitComplaint() {
           <h1 className="text-3xl font-semibold text-gray-900 mb-2">Submit a Complaint</h1>
           <p className="text-gray-600 text-sm">Please provide all required information</p>
         </div>
-        
+
         <Card className="p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  placeholder="Brief title for your complaint"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Describe your complaint in detail..."
-                  rows={5}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all resize-none"
-                  required
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Title <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="Brief title for your complaint"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image <span className="text-red-500">*</span>
-                </label>
-                <div className="space-y-3">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-brand file:text-white hover:file:bg-brand-dark file:cursor-pointer"
-                    required
-                  />
-                  {imagePreview && (
-                    <div className="mt-3">
-                      <p className="text-xs text-gray-600 mb-2">Image Preview:</p>
-                      <div className="relative rounded-lg overflow-hidden border border-gray-200">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-full h-48 object-cover"
-                        />
-                      </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="Describe your complaint in detail..."
+                rows={5}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all resize-none"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image <span className="text-red-500">*</span>
+              </label>
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-brand file:text-white hover:file:bg-brand-dark file:cursor-pointer"
+                  required
+                />
+                {imagePreview && (
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-600 mb-2">Image Preview:</p>
+                    <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-48 object-cover"
+                      />
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-              
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={!isFormValid}
-                  className="w-full bg-brand disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-dark text-white rounded-lg px-6 py-3 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-                >
-                  Submit Complaint
-                </button>
-              </div>
-            </form>
-          </Card>
+            </div>
+
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={!isFormValid}
+                className="w-full bg-brand disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-dark text-white rounded-lg px-6 py-3 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                Submit Complaint
+              </button>
+            </div>
+          </form>
+        </Card>
       </div>
       {user?.role === 'student' && <BottomNav />}
     </div>

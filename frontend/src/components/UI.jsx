@@ -37,21 +37,81 @@ export function Skeleton({ className = '' }) {
   return <div className={`animate-pulse bg-gray-100 rounded ${className}`} />;
 }
 
-export function Badge({ children, type = 'default' }) {
-  const styles = {
-    default: 'bg-gray-100 text-gray-700',
-    Pending: 'bg-accent/10 text-accent-dark border border-accent/20', // Gold/Amber for Pending
-    Resolved: 'bg-brand/10 text-brand-dark border border-brand/20', // Green for Resolved
-    Rejected: 'bg-red-50 text-red-700 border border-red-100',
-    High: 'bg-accent/10 text-accent-dark font-semibold border border-accent/20', // Gold for Priority
-    Medium: 'bg-orange-50 text-orange-700',
-    Low: 'bg-gray-100 text-gray-600',
+export function Badge({ children, type = 'default', variant = 'status' }) {
+  // Normalize type to title case for matching keys (e.g. "low" -> "Low")
+  const normalize = (str) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 
+  const key = normalize(type);
+
+  // Priority badge styles with pastel gradients
+  const priorityStyles = {
+    Low: 'bg-gradient-to-r from-priority-low/30 to-priority-low/20 text-green-700 border border-priority-low/40',
+    Medium: 'bg-gradient-to-r from-priority-medium/30 to-priority-medium/20 text-amber-700 border border-priority-medium/40',
+    High: 'bg-gradient-to-r from-priority-high/30 to-priority-high/20 text-orange-700 border border-priority-high/40',
+    Critical: 'bg-gradient-to-r from-priority-critical/30 to-priority-critical/20 text-red-700 border border-priority-critical/40',
+  };
+
+  // Status badge styles with pastel gradients  
+  const statusStyles = {
+    Raised: 'bg-gradient-to-r from-status-raised/30 to-status-raised/20 text-blue-700 border border-status-raised/40',
+    Opened: 'bg-gradient-to-r from-status-opened/30 to-status-opened/20 text-teal-700 border border-status-opened/40',
+    Reviewed: 'bg-gradient-to-r from-status-reviewed/30 to-status-reviewed/20 text-violet-700 border border-status-reviewed/40',
+    Closed: 'bg-gradient-to-r from-status-closed/30 to-status-closed/20 text-gray-600 border border-status-closed/40',
+    Pending: 'bg-gradient-to-r from-status-raised/30 to-status-raised/20 text-blue-700 border border-status-raised/40',
+    Resolved: 'bg-gradient-to-r from-brand/20 to-brand/10 text-brand-dark border border-brand/30',
+    Rejected: 'bg-gradient-to-r from-red-100 to-red-50 text-red-700 border border-red-200',
+  };
+
+  // Category badge style
+  const categoryStyle = 'bg-gradient-to-r from-brand/15 to-brand/5 text-brand-dark border border-brand/20';
+
+  // Determine which style set to use
+  let badgeStyle = 'bg-gray-100 text-gray-700 border border-gray-200';
+
+  if (variant === 'priority' && priorityStyles[key]) {
+    badgeStyle = priorityStyles[key];
+  } else if (variant === 'status' && statusStyles[key]) {
+    badgeStyle = statusStyles[key];
+  } else if (variant === 'category') {
+    badgeStyle = categoryStyle;
+  } else if (statusStyles[key]) {
+    badgeStyle = statusStyles[key];
+  } else if (priorityStyles[key]) {
+    badgeStyle = priorityStyles[key];
+  }
+
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[type] || styles.default}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm backdrop-blur-sm ${badgeStyle}`}>
       {children}
     </span>
+  );
+}
+
+// New Raise Issue Button with coral gradient and 3D press effect
+export function RaiseButton({ children, className = '', ...props }) {
+  return (
+    <button
+      className={`
+        inline-flex items-center justify-center gap-2
+        px-6 py-3.5
+        bg-gradient-to-b from-raise-light via-raise to-raise-dark
+        text-white font-semibold
+        rounded-xl
+        shadow-raise-btn
+        border-t border-raise-light/50
+        transition-all duration-200
+        hover:shadow-raise-btn-hover hover:-translate-y-0.5
+        active:shadow-raise-pressed active:translate-y-0 active:scale-[0.98]
+        focus:outline-none focus:ring-2 focus:ring-raise/50 focus:ring-offset-2
+        ${className}
+      `}
+      {...props}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -92,8 +152,4 @@ export function Stat({ label, value, color = 'brand' }) {
     </div>
   );
 }
-
-
-
-
 

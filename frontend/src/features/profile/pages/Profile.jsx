@@ -1,8 +1,8 @@
 import React from 'react';
-import { TopNav } from '../components/Navbars';
-import BottomNav from '../components/BottomNav';
-import { Card, Button } from '../components/UI';
-import { useAuth } from '../context/AuthContext';
+import { TopNav } from '../../../components/Navbars';
+import BottomNav from '../../../components/BottomNav';
+import { Card, Button } from '../../../components/UI';
+import { useAuth } from '../../../context/AuthContext';
 import { LogOut, User, Mail, Hash, Building, BookOpen, Phone } from 'lucide-react';
 
 export default function Profile() {

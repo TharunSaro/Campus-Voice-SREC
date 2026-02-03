@@ -1,16 +1,16 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import LoginPage from './pages/LoginPage';
-import StudentHome from './pages/StudentHome';
-import ComplaintDetails from './pages/ComplaintDetails';
-import AdminDashboard from './pages/AdminDashboard';
+import LoginPage from './features/auth/pages/LoginPage';
+import StudentHome from './features/complaints/pages/StudentHome';
+import ComplaintDetails from './features/complaints/pages/ComplaintDetails';
+import AdminDashboard from './features/admin/pages/AdminDashboard';
 import InstallPrompt from './components/InstallPrompt';
-import SignupPage from './pages/SignupPage';
-import Onboarding from './pages/Onboarding';
-import Profile from './pages/Profile';
-import Posts from './pages/Posts';
-import Notifications from './pages/Notifications';
+import SignupPage from './features/auth/pages/SignupPage';
+import Onboarding from './features/auth/pages/Onboarding';
+import Profile from './features/profile/pages/Profile';
+import Posts from './features/complaints/pages/Posts';
+import Notifications from './features/complaints/pages/Notifications';
 
 function ProtectedRoute({ children, allow }) {
   const { user } = useAuth();
