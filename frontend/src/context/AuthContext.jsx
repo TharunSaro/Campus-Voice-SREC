@@ -8,16 +8,44 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const user = authService.getCurrentUser();
-    if (user) {
-      setCurrentUser(user);
-    }
-    setLoading(false);
+    const initializeApp = async () => {
+      try {
+        // Wake up backend (Render free tier may be sleeping)
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://campusvoice-api-h528.onrender.com/api';
+        const healthUrl = API_BASE_URL.replace('/api', '') + '/health';
+
+        // Ping backend without waiting for response (fire and forget)
+        fetch(healthUrl).catch(() => {
+          // Ignore errors - backend will wake up in background
+        });
+
+        // Check if user is logged in
+        const user = authService.getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        console.error('Initialization error:', error);
+      } finally {
+        // Small delay to ensure backend has time to wake up
+        setTimeout(() => {
+          setLoading(false);
+        }, 1000);
+      }
+    };
+
+    initializeApp();
   }, []);
 
-  const login = async (email, password) => {
-    const data = await authService.login(email, password);
-    setCurrentUser(data.user);
+  const loginStudent = async (email, password) => {
+    const data = await authService.loginStudent(email, password);
+    setCurrentUser(data); // data is the user object with role merged
+    return data;
+  };
+
+  const loginAuthority = async (email, password) => {
+    const data = await authService.loginAuthority(email, password);
+    setCurrentUser(data);
     return data;
   };
 
@@ -32,7 +60,8 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user: currentUser,
-    login,
+    loginStudent,
+    loginAuthority,
     signup,
     logout,
     loading

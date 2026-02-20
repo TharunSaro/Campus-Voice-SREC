@@ -1,0 +1,141 @@
+================================================================================
+CAMPUSVOICE – BACKEND THEORY (AUTHORITATIVE)
+================================================================================
+
+CampusVoice is a campus complaint management system for SREC college.
+
+Students submit complaints → AI categorizes and routes them → Authorities handle them.
+
+----------------------------------------------------------------------
+USER ROLES
+----------------------------------------------------------------------
+
+There are THREE runtime roles:
+
+1) Student
+   - registers
+   - submits complaints
+   - votes
+   - views public feed
+
+2) Authority
+   - warden / HOD / officers
+   - receives and resolves assigned complaints
+
+3) Admin
+   - top-level authority (authority_level = 100)
+
+Important:
+Admin is NOT a separate table and NOT a separate user model.
+Admin is an Authority with:
+  authority_type = "Admin"
+  authority_level = 100
+
+JWT token contains:
+  role = "Admin"   (for level-100 authorities)
+  role = "Authority" (for all other authorities)
+
+----------------------------------------------------------------------
+LOGIN FLOW
+----------------------------------------------------------------------
+
+Students login using:
+  POST /api/students/login
+
+Authorities (including Admin) login using:
+  POST /api/authorities/login
+
+----------------------------------------------------------------------
+COMPLAINT FLOW (FULLY AI-DRIVEN)
+----------------------------------------------------------------------
+
+1) Student fills a form:
+   - writes complaint text
+   - chooses visibility (Public / Private)
+   - optionally attaches an image
+
+   IMPORTANT:
+   Students DO NOT select category.
+   Category is decided only by AI.
+
+2) Backend sends complaint text to Groq LLM which performs:
+
+   - spam and abuse detection (rejects if spam)
+   - automatic category classification
+     (Men's Hostel / Women's Hostel / General / Department / Disciplinary)
+   - automatic target department detection
+     (example: "ECE lab" → ECE department)
+   - enables cross-department routing
+     (student department may differ from target department)
+   - checks whether image evidence is required
+     (rejects if required and image is missing)
+   - rewrites complaint into professional language
+   - suggests priority (Low / Medium / High / Critical)
+
+3) Backend uses AI output to route the complaint:
+
+   Men's Hostel        → Men's Hostel Warden
+   Women's Hostel      → Women's Hostel Warden
+   General             → Admin Officer
+   Department          → HOD of target department (not student department)
+   Disciplinary        → Disciplinary Committee
+
+4) Backend enforces business rules:
+   - Day scholars cannot submit hostel complaints
+   - gender-based hostel restrictions are enforced
+
+5) Authority receives the complaint in their dashboard.
+
+6) Authority updates status:
+   Raised → In Progress → Resolved → Closed
+
+7) Student receives notifications on every status change.
+
+8) If authority cannot resolve:
+   the complaint is escalated to the next level automatically.
+
+IMPORTANT:
+This system is fully AI-driven.
+Frontend must never send category_id.
+Backend determines:
+  - category
+  - target department
+  - routing authority
+  - image requirement
+
+----------------------------------------------------------------------
+AUTHORITY HIERARCHY
+----------------------------------------------------------------------
+
+Men's Hostel Warden            → level 5
+Women's Hostel Warden          → level 5
+HOD                             → level 8
+Men's Hostel Deputy Warden     → level 10
+Women's Hostel Deputy Warden   → level 10
+Senior Deputy Warden           → level 15
+Disciplinary Committee         → level 20
+Admin Officer                  → level 50
+Admin                           → level 100
+
+----------------------------------------------------------------------
+ESCALATION CHAINS
+----------------------------------------------------------------------
+
+Men's Hostel:
+  Warden → Deputy Warden → Senior Deputy Warden → Admin
+
+Women's Hostel:
+  Warden → Deputy Warden → Senior Deputy Warden → Admin
+
+Department:
+  HOD → Admin
+
+General:
+  Admin Officer → Admin
+
+Disciplinary:
+  Disciplinary Committee → Admin
+
+================================================================================
+End of backend theory reference.
+================================================================================

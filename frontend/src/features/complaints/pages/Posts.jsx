@@ -6,18 +6,18 @@ import { Card, Button } from '../../../components/UI';
 import ComplaintCard from '../components/ComplaintCard';
 import { useAuth } from '../../../context/AuthContext';
 import complaintService from '../../../services/complaint.service';
+import studentService from '../../../services/student.service';
 import { Upload, X, Lock, FileX } from 'lucide-react';
+import { VISIBILITY } from '../../../utils/constants';
 
 export default function Posts() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('create');
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
+    original_text: '',
     image: null,
-    visibility: 'public',
-    skipEscalation: false,
+    visibility: 'Public',
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [myPosts, setMyPosts] = useState([]);
@@ -36,41 +36,30 @@ export default function Posts() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image must be less than 5MB');
+        return;
+      }
+      // Validate type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Only JPEG, PNG, GIF, and WebP images are allowed');
+        return;
+      }
       setFormData({ ...formData, image: file });
       setImagePreview(URL.createObjectURL(file));
     }
   };
 
-  const uploadToCloudinary = async (file) => {
-    const data = new FormData();
-    data.append("file", file);
-    data.append("upload_preset", "campus_voice_unsigned");
-    data.append("folder", "campus_voice/complaints");
 
-    try {
-      const res = await fetch("https://api.cloudinary.com/v1_1/dl8oqrw3e/image/upload", {
-        method: "POST",
-        body: data,
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(`Image upload failed: ${errorData.error?.message || res.statusText}`);
-      }
-
-      const json = await res.json();
-      return json.secure_url;
-    } catch (error) {
-      console.error("Cloudinary Upload Error:", error);
-      throw error;
-    }
-  };
 
   useEffect(() => {
     const fetchMyComplaints = async () => {
-      if (activeTab === 'mine' && user?.reg_no) {
+      if (activeTab === 'mine') {
         try {
-          const response = await complaintService.getMyComplaints(user.reg_no);
+          const response = await studentService.getMyComplaints({ skip: 0, limit: 50 });
+          console.log('📋 My Complaints Response:', response);
           if (Array.isArray(response)) {
             setMyPosts(response);
           } else if (response && Array.isArray(response.complaints)) {
@@ -88,64 +77,74 @@ export default function Posts() {
     };
 
     fetchMyComplaints();
-  }, [activeTab, user?.reg_no]);
+  }, [activeTab]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.description) {
-      alert('Title and Description are required.');
+    // Validate original_text
+    if (!formData.original_text || formData.original_text.trim().length < 10) {
+      alert('Complaint text must be at least 10 characters.');
       return;
     }
 
-    if (formData.visibility === 'public' && !formData.image) {
-      alert('Image upload is mandatory for public complaints.');
+    if (formData.original_text.length > 2000) {
+      alert('Complaint text must not exceed 2000 characters.');
+      return;
+    }
+
+    // Check for ALL CAPS
+    const textWithoutSpaces = formData.original_text.replace(/\s/g, '');
+    if (textWithoutSpaces === textWithoutSpaces.toUpperCase() && /[A-Z]/.test(textWithoutSpaces)) {
+      alert('Please avoid writing in ALL CAPS.');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      let imageUrl = '';
+      // Build FormData
+      const fd = new FormData();
+      fd.append('original_text', formData.original_text);
+      fd.append('visibility', formData.visibility); // "Private" or "Public"
       if (formData.image) {
-        imageUrl = await uploadToCloudinary(formData.image);
+        fd.append('image', formData.image);
       }
 
-      const payload = {
-        name: user?.name,
-        register_number: user?.reg_no,
-        department: user?.department,
-        stay_type: user?.stay_type,
-        visibility: formData.visibility === 'public' ? 'Public' : 'Private',
-        title: formData.title,
-        description: formData.description,
-        image_url: imageUrl,
-      };
+      const response = await complaintService.submitComplaint(fd);
 
-      const response = await complaintService.createComplaint(payload);
+      // Upload image separately if exists
+      if (formData.image) {
+        try {
+          await complaintService.uploadImage(response.id, formData.image);
+        } catch (uploadError) {
+          console.error("Image upload failed:", uploadError);
+          // We don't fail the whole submission, but alert the user
+          alert("Complaint submitted, but image upload failed. You can try verifying it later in details.");
+        }
+      }
 
       setApiResponse(response);
       setSubmitted(true);
 
-      const newPost = {
-        ...formData,
-        id: Date.now(),
-        submitted_at: new Date().toISOString(),
-        status: 'Pending',
-        upvotes: 0,
-        ...response,
-        image_url: imageUrl
-      };
 
       // Optimistically update list
+      const newPost = {
+        id: response.id || Date.now(),
+        submitted_at: new Date().toISOString(),
+        status: response.status || 'Pending',
+        category: response.category,
+        priority: response.priority,
+        upvotes: 0,
+        ...response
+      };
       setMyPosts([newPost, ...myPosts]);
 
+      // Reset form
       setFormData({
-        title: '',
-        description: '',
+        original_text: '',
         image: null,
-        visibility: 'public',
-        skipEscalation: false,
+        visibility: 'Public',
       });
       setImagePreview(null);
 
@@ -157,16 +156,17 @@ export default function Posts() {
     }
   };
 
-  const inputClass = "w-full rounded-lg border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm text-gray-900 shadow-neu-light placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/50 transition-all";
+  const inputClass = "w-full rounded-lg border border-srec-border bg-gray-50/50 px-4 py-2.5 text-sm text-srec-textPrimary shadow-sm placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-srec-primary/50 transition-all";
+
 
   // Success screen
   if (submitted && apiResponse) {
     return (
-      <div className="fixed inset-0 z-50 min-h-screen bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="max-w-lg w-full mx-auto p-8 bg-surface rounded-2xl shadow-xl overflow-y-auto max-h-[90vh] border border-white/60">
+      <div className="fixed inset-0 z-50 min-h-screen bg-srec-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="max-w-lg w-full mx-auto p-8 bg-white rounded-2xl shadow-xl overflow-y-auto max-h-[90vh] border border-white/60">
           <div className="mb-6 flex justify-center">
-            <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center shadow-inner">
-              <svg className="w-10 h-10 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-20 h-20 bg-srec-primary/10 rounded-full flex items-center justify-center shadow-inner">
+              <svg className="w-10 h-10 text-srec-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -185,12 +185,12 @@ export default function Posts() {
               </div>
               <div>
                 <span className="text-xs text-gray-400 uppercase tracking-wide font-bold">Category</span>
-                <p className="font-medium text-brand">{apiResponse.category || 'AI Analysis Pending'}</p>
+                <p className="font-medium text-srec-primary">{apiResponse.category || 'AI Analysis Pending'}</p>
               </div>
               <div>
                 <span className="text-xs text-gray-400 uppercase tracking-wide font-bold">Priority</span>
                 <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold mt-1
-                     ${apiResponse.priority === 'High' ? 'bg-red-50 text-error' : 'bg-green-50 text-success'}`}>
+                     ${apiResponse.priority === 'High' ? 'bg-red-50 text-error' : 'bg-green-50 text-srec-primary'}`}>
                   {apiResponse.priority || 'Normal'}
                 </span>
               </div>
@@ -198,42 +198,85 @@ export default function Posts() {
                 <span className="text-xs text-gray-400 uppercase tracking-wide font-bold">Assigned To</span>
                 <p className="font-medium text-gray-900">{apiResponse.assigned_authority || 'Pending'}</p>
               </div>
+              {apiResponse.target_department_code && (
+                <div>
+                  <span className="text-xs text-gray-400 uppercase tracking-wide font-bold">Department</span>
+                  <p className="font-medium text-gray-900">{apiResponse.target_department_code}</p>
+                </div>
+              )}
+              {apiResponse.cross_department && (
+                <div>
+                  <span className="text-xs text-gray-400 uppercase tracking-wide font-bold">Routing</span>
+                  <p className="font-medium text-orange-600">Cross-Department</p>
+                </div>
+              )}
             </div>
 
             <div className="pt-4 border-t border-gray-200">
-              <span className="text-xs text-gray-400 uppercase tracking-wide font-bold">AI Summary</span>
-              <p className="text-sm text-gray-700 mt-1 italic leading-relaxed">"{apiResponse.summary || 'No summary available.'}"</p>
+              <span className="text-xs text-gray-400 uppercase tracking-wide font-bold">AI Rephrased Complaint</span>
+              <p className="text-sm text-gray-700 mt-1 italic leading-relaxed">"{apiResponse.rephrased_text || apiResponse.summary || 'Processing...'}"</p>
             </div>
+
+            {apiResponse.has_image && apiResponse.image_verification_status && (
+              <div className="pt-4 border-t border-gray-200">
+                <span className="text-xs text-gray-400 uppercase tracking-wide font-bold">Image Verification</span>
+                <p className={`text-sm mt-1 ${apiResponse.image_verified ? 'text-green-600' : 'text-orange-600'}`}>
+                  {apiResponse.image_verification_message || apiResponse.image_verification_status}
+                </p>
+              </div>
+            )}
+
+            {apiResponse.llm_failed && (
+              <div className="pt-4 border-t border-gray-200 bg-yellow-50 -mx-6 -mb-6 px-6 py-4 rounded-b-xl">
+                <p className="text-xs text-yellow-700">
+                  ⚠️ AI analysis is temporarily unavailable. Your complaint has been submitted and will be manually reviewed.
+                </p>
+              </div>
+            )}
           </div>
 
-          <Button
-            onClick={() => {
-              setSubmitted(false);
-              setApiResponse(null);
-              navigate('/home');
-            }}
-            className="w-full py-3 shadow-lg shadow-brand/20"
-          >
-            Go to Home
-          </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setSubmitted(false);
+                setApiResponse(null);
+                setActiveTab('mine');
+              }}
+              className="py-3"
+            >
+              View My Posts
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setSubmitted(false);
+                setApiResponse(null);
+                navigate('/home');
+              }}
+              className="py-3"
+            >
+              Go to Home
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-srec-background">
       <TopNav />
 
       <div className="max-w-3xl mx-auto p-4 sm:p-6 pb-24 md:pl-24 transition-all duration-300">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Posts</h1>
 
-          <div className="flex bg-surface rounded-lg shadow-neu-light p-1">
+          <div className="flex bg-white rounded-lg shadow-sm border border-srec-border p-1">
             <button
               onClick={() => setActiveTab('create')}
               className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'create'
-                ? 'bg-brand text-white shadow-md'
+                ? 'bg-srec-primary text-white shadow-md'
                 : 'text-gray-500 hover:text-gray-900'
                 }`}
             >
@@ -242,7 +285,7 @@ export default function Posts() {
             <button
               onClick={() => setActiveTab('mine')}
               className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'mine'
-                ? 'bg-brand text-white shadow-md'
+                ? 'bg-srec-primary text-white shadow-md'
                 : 'text-gray-500 hover:text-gray-900'
                 }`}
             >
@@ -252,104 +295,86 @@ export default function Posts() {
         </div>
 
         {activeTab === 'create' && (
-          <Card className="p-6 sm:p-8 shadow-neu-flat">
+          <Card className="p-6 sm:p-8 shadow-sm">
             {/* Privacy Reassurance Banner */}
-            <div className="flex items-center gap-3 p-4 mb-6 rounded-xl bg-gradient-to-r from-brand/5 to-brand/10 border border-brand/20">
-              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-brand/15 flex items-center justify-center shadow-inner">
-                <Lock size={18} className="text-brand" />
+            <div className="flex items-center gap-3 p-4 mb-6 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 shadow-sm">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shadow-inner text-amber-600">
+                <Lock size={18} />
               </div>
-              <p className="text-sm text-brand-dark font-medium">
-                Your identity is hidden from other students. Only authorities can see your details.
-              </p>
+              <div>
+                <h4 className="text-sm font-bold text-amber-800">Anonymous Posting</h4>
+                <p className="text-xs text-amber-700/80 font-medium mt-0.5">
+                  Your identity is hidden from other students. Only authorities can see your details.
+                </p>
+              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Give it a short title</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="e.g., Broken water dispenser in Block A"
-                  className={inputClass}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">What exactly happened?</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Describe your complaint</label>
                 <textarea
-                  name="description"
-                  value={formData.description}
+                  name="original_text"
+                  value={formData.original_text}
                   onChange={handleChange}
-                  placeholder="Tell us the details — where, when, and what you noticed..."
-                  rows={4}
+                  placeholder="Tell us what happened in detail (10-2000 characters)..."
+                  rows={6}
+                  minLength={10}
+                  maxLength={2000}
                   className={inputClass}
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  {formData.original_text.length} / 2000 characters
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">Complaint Visibility</label>
                 <div className="flex gap-4">
-                  <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${formData.visibility === 'public' ? 'border-brand bg-brand/5 text-brand shadow-sm' : 'border-gray-200 bg-gray-50 hover:bg-white text-gray-600'}`}>
+                  <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all duration-200 ${formData.visibility === 'Public' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20' : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-600'}`}>
                     <input
                       type="radio"
                       name="visibility"
-                      value="public"
-                      checked={formData.visibility === 'public'}
+                      value="Public"
+                      checked={formData.visibility === 'Public'}
                       onChange={handleChange}
                       className="hidden"
                     />
-                    <span className="font-medium">Public</span>
+                    <span className="font-bold">Public</span>
                   </label>
-                  <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${formData.visibility === 'private' ? 'border-brand bg-brand/5 text-brand shadow-sm' : 'border-gray-200 bg-gray-50 hover:bg-white text-gray-600'}`}>
+                  <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all duration-200 ${formData.visibility === 'Private' ? 'border-amber-500 bg-amber-50 text-amber-700 shadow-sm ring-1 ring-amber-500/20' : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-600'}`}>
                     <input
                       type="radio"
                       name="visibility"
-                      value="private"
-                      checked={formData.visibility === 'private'}
+                      value="Private"
+                      checked={formData.visibility === 'Private'}
                       onChange={handleChange}
                       className="hidden"
                     />
-                    <span className="font-medium">Private</span>
+                    <span className="font-bold">Private</span>
                   </label>
                 </div>
                 <p className="text-xs text-gray-500 mt-2 text-center">
-                  {formData.visibility === 'public'
+                  {formData.visibility === 'Public'
                     ? "Visible to all students in the public feed."
                     : "Visible only to you and the assigned authority."}
                 </p>
               </div>
 
-              {formData.visibility === 'private' && (
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                  <input
-                    type="checkbox"
-                    name="skipEscalation"
-                    id="skipEscalation"
-                    checked={formData.skipEscalation}
-                    onChange={handleChange}
-                    className="w-4 h-4 rounded text-brand focus:ring-brand"
-                  />
-                  <label htmlFor="skipEscalation" className="text-sm text-gray-700 cursor-pointer select-none">
-                    Skip local authority and escalate immediately (if urgent)
-                  </label>
-                </div>
-              )}
+
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Add a photo {formData.visibility === 'public' && <span className="text-error">*</span>}
+                  Add a photo (optional)
                   <span className="text-gray-400 font-normal ml-1">(helps us understand better)</span>
                 </label>
 
                 {!imagePreview ? (
-                  <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${formData.visibility === 'public' && !formData.image ? 'border-brand/40 bg-brand/5 hover:bg-brand/10' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'}`}>
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors border-gray-300 bg-gray-50 hover:bg-gray-100">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className={`w-8 h-8 mb-2 ${formData.visibility === 'public' && !formData.image ? 'text-brand' : 'text-gray-400'}`} />
-                      <p className="text-xs text-gray-500 font-medium">Click to upload image</p>
+                      <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                      <p className="text-xs text-gray-500 font-medium">Click to upload image (max 5MB)</p>
+                      <p className="text-xs text-gray-400 mt-1">JPEG, PNG, GIF, or WebP</p>
                     </div>
                     <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                   </label>
@@ -372,8 +397,9 @@ export default function Posts() {
 
               <Button
                 type="submit"
+                variant="primary"
                 disabled={isSubmitting}
-                className="w-full py-3 shadow-lg shadow-brand/20 mt-4"
+                className="w-full py-3 mt-4"
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Grievance'}
               </Button>
@@ -385,15 +411,15 @@ export default function Posts() {
         {activeTab === 'mine' && (
           <div className="space-y-5">
             {(!Array.isArray(myPosts) || myPosts.length === 0) ? (
-              <div className="text-center py-16 bg-surface rounded-2xl shadow-neu-soft border border-gray-100">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-50 shadow-neu-inset flex items-center justify-center">
+              <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-50 flex items-center justify-center">
                   <FileX size={28} className="text-gray-400" />
                 </div>
                 <p className="text-gray-600 text-lg font-medium">You haven't raised any issues yet</p>
                 <p className="text-gray-400 text-sm mt-2 max-w-xs mx-auto">
                   Your submitted issues will appear here so you can track their progress.
                 </p>
-                <Button variant="ghost" className="mt-4 text-brand font-semibold" onClick={() => setActiveTab('create')}>
+                <Button variant="ghost" className="mt-4 text-srec-primary font-semibold" onClick={() => setActiveTab('create')}>
                   Raise your first issue →
                 </Button>
               </div>
@@ -403,11 +429,11 @@ export default function Posts() {
                   key={post.id || post.complaint_id}
                   id={post.id || post.complaint_id}
                   title={post.title}
-                  desc={post.description}
+                  desc={post.original_text || post.description}
                   summary={post.summary || post.llm_analysis?.summary}
                   category={post.category}
-                  img={post.image_url}
-                  author={post.name || user?.name || "You"}
+                  has_image={post.has_image}
+                  author={post.is_anonymous ? 'Anonymous' : (post.author || post.student_roll_no)}
                   status={post.status}
                   priority={post.priority}
                   upvotes={post.upvotes}
@@ -420,7 +446,7 @@ export default function Posts() {
         )}
       </div>
 
-      {user?.role === 'student' && <BottomNav />}
+      {user?.role === 'Student' && <BottomNav />}
     </div>
   );
 }

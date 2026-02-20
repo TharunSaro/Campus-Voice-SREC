@@ -4,16 +4,18 @@ import { TopNav } from '../../../components/Navbars';
 import BottomNav from '../../../components/BottomNav';
 import { Card } from '../../../components/UI';
 import { useAuth } from '../../../context/AuthContext';
+import complaintService from '../../../services/complaint.service';
 
-const CATEGORIES = ['Hostel', 'Mess', 'Academics', 'Infrastructure', 'Transport', 'Other'];
 
 export default function SubmitComplaint() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ title: '', category: '', description: '', image: null });
+  const [form, setForm] = useState({ title: '', description: '', image: null, visibility: 'Public' });
   const [imagePreview, setImagePreview] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [showCheckmark, setShowCheckmark] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -23,24 +25,44 @@ export default function SubmitComplaint() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError(null);
+    setSubmitting(true);
 
-    // Trigger circle animation immediately
-    setShowCheckmark(true);
+    try {
+      // Create FormData for multipart upload
+      const formData = new FormData();
+      formData.append('original_text', form.description);
+      formData.append('visibility', form.visibility);
 
-    // Redirect to home after showing success message (4 seconds)
-    setTimeout(() => {
-      navigate('/home');
-    }, 4000);
+      if (form.image) {
+        formData.append('image', form.image);
+      }
+
+      // Submit to API
+      await complaintService.submitComplaint(formData);
+
+      // Show success animation
+      setSubmitted(true);
+      setShowCheckmark(true);
+
+      // Redirect to home after showing success message (4 seconds)
+      setTimeout(() => {
+        navigate('/home');
+      }, 4000);
+    } catch (err) {
+      console.error('Submission error:', err);
+      setError(err.message || 'Failed to submit complaint. Please try again.');
+      setSubmitting(false);
+    }
   };
 
   // Reset form when component unmounts or when navigating away
   useEffect(() => {
     return () => {
       if (!submitted) {
-        setForm({ title: '', category: '', description: '', image: null });
+        setForm({ title: '', description: '', image: null });
         setImagePreview(null);
         const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) fileInput.value = '';
@@ -48,7 +70,7 @@ export default function SubmitComplaint() {
     };
   }, [submitted]);
 
-  const isFormValid = form.title && form.description && form.image;
+  const isFormValid = form.description && form.image && !submitting;
 
   // Success screen (GPay-style)
   if (submitted) {
@@ -192,19 +214,55 @@ export default function SubmitComplaint() {
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Visibility
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="visibility"
+                    value="Public"
+                    checked={form.visibility === 'Public'}
+                    onChange={(e) => setForm({ ...form, visibility: e.target.value })}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">Public</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="visibility"
+                    value="Private"
+                    checked={form.visibility === 'Private'}
+                    onChange={(e) => setForm({ ...form, visibility: e.target.value })}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">Private</span>
+                </label>
+              </div>
+            </div>
+
+            {error && (
+              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
             <div className="pt-4">
               <button
                 type="submit"
                 disabled={!isFormValid}
                 className="w-full bg-brand disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-dark text-white rounded-lg px-6 py-3 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                Submit Complaint
+                {submitting ? 'Submitting...' : 'Submit Complaint'}
               </button>
             </div>
           </form>
         </Card>
       </div>
-      {user?.role === 'student' && <BottomNav />}
+      {user?.role === 'Student' && <BottomNav />}
     </div>
   );
 }

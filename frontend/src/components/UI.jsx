@@ -8,30 +8,8 @@ export function Card({ children, className = '' }) {
   );
 }
 
-export function Button({ children, variant = 'primary', className = '', ...props }) {
-  const baseStyles = "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 active:scale-[0.98] outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand/50 disabled:opacity-50 disabled:pointer-events-none";
-
-  const variants = {
-    // Soft Green Gradient with subtle Gold highlight on top edge
-    primary: "bg-gradient-to-b from-brand-light/90 to-brand text-white shadow-lg shadow-brand/20 hover:shadow-brand/30 hover:-translate-y-0.5 border-t border-accent/40",
-
-    // White surface, Green border
-    secondary: "bg-white text-gray-700 border border-brand/30 text-brand-dark shadow-sm hover:bg-brand/5",
-
-    ghost: "bg-transparent text-gray-600 hover:bg-brand/5 hover:text-brand-dark",
-    outline: "bg-transparent border border-brand text-brand hover:bg-brand/5",
-    danger: "bg-white border border-error text-error hover:bg-error/5",
-  };
-
-  return (
-    <button
-      className={`${baseStyles} ${variants[variant] || variants.primary} ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
+// Button component moved to ./UI/Button.jsx
+export { default as Button } from './UI/Button';
 
 export function Skeleton({ className = '' }) {
   return <div className={`animate-pulse bg-gray-100 rounded ${className}`} />;
@@ -121,12 +99,16 @@ export function Select({ value, onChange, options, placeholder, className = '' }
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full appearance-none rounded-lg border border-gray-200 bg-surface px-4 py-2.5 text-sm text-gray-900 shadow-neu-light focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/50 ${className}`}
+        className={`w-full appearance-none rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 shadow-neu-light focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/50 ${className}`}
       >
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
+        {placeholder && <option value="" className="bg-white text-gray-900">{placeholder}</option>}
+        {options.map((opt) => {
+          const value = typeof opt === 'object' ? opt.value : opt;
+          const label = typeof opt === 'object' ? opt.label : opt;
+          return (
+            <option key={value} value={value} className="bg-white text-gray-900">{label}</option>
+          );
+        })}
       </select>
       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,3 +135,6 @@ export function Stat({ label, value, color = 'brand' }) {
   );
 }
 
+// Export new components
+export { default as EliteButton } from './UI/EliteButton';
+export { default as StatsCard } from './UI/StatsCard';

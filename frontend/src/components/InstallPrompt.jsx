@@ -33,11 +33,9 @@ export default function InstallPrompt() {
         </div>
         <div className="flex gap-2">
           <button onClick={() => setVisible(false)} className="text-sm text-gray-600">Later</button>
-          <button onClick={onInstall} className="text-sm bg-brand hover:bg-brand-dark text-white px-3 py-1.5 rounded-lg">Install</button>
+          <button onClick={onInstall} className="text-sm bg-srec-primary hover:bg-srec-primaryHover text-white px-3 py-1.5 rounded-lg">Install</button>
         </div>
       </div>
     </div>
   );
 }
-
-

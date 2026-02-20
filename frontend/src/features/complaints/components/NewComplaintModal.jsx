@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Button, Select } from "../../../components/UI";
 
 export default function NewComplaintModal({ isOpen, onClose, onAdd }) {
-  const [form, setForm] = useState({ title: "", desc: "", category: "", img: null });
+  // Category is now AI assigned, removed from manual input
+  const [form, setForm] = useState({ title: "", desc: "", img: null });
   const [preview, setPreview] = useState("");
 
   if (!isOpen) return null;
@@ -18,7 +19,7 @@ export default function NewComplaintModal({ isOpen, onClose, onAdd }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.title || !form.desc || !form.category || !form.img) {
+    if (!form.title || !form.desc || !form.img) {
       alert("All fields including image are required!");
       return;
     }
@@ -30,11 +31,13 @@ export default function NewComplaintModal({ isOpen, onClose, onAdd }) {
         author: "You",
         id: Date.now(),
         status: "Pending",
+        // category will be pending/assigned by backend
+        category: "Pending AI Analysis",
         upvotes: 0,
         submitted_at: new Date().toISOString()
       });
     }
-    setForm({ title: "", desc: "", category: "", img: null });
+    setForm({ title: "", desc: "", img: null });
     setPreview("");
     onClose();
   };
@@ -66,19 +69,7 @@ export default function NewComplaintModal({ isOpen, onClose, onAdd }) {
             ></textarea>
           </div>
 
-          <div>
-            <select
-              className={inputClass}
-              value={form.category}
-              onChange={e => setForm({ ...form, category: e.target.value })}
-            >
-              <option value="">Select Category</option>
-              <option value="Hostel">Hostel</option>
-              <option value="Mess">Mess</option>
-              <option value="Infrastructure">Infrastructure</option>
-              <option value="Academic">Academic</option>
-            </select>
-          </div>
+          {/* Category selection removed - AI handled */}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Upload Evidence</label>
